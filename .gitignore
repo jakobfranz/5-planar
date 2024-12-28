@@ -1,0 +1,17 @@
+# Pycache
+__pycache__/
+# Conda
+.conda/
+
+# Jupyter Notebooks
+*.ipynb
+
+
+# Deprecated Files
+.cache
+ilp.py
+ilp_korrekt_visualisiert.py
+
+# not ready files
+tiling.py
+tilings.py
