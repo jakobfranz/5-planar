@@ -4,15 +4,18 @@ from pulp import LpProblem, LpMaximize, LpInteger, pulp
 import networkx as nx
 import math
 
-Vertex = int
+Vertex = float
 Edge = tuple[Vertex, Vertex]
 
 
 class ChordSolution:
-    def __init__(self, k: int, n: int, chords: list[Edge]) -> None:
+    def __init__(
+        self, k: int, n: int, chords: list[Edge], draw_outer_edges: bool = True
+    ) -> None:
         self.k = k
         self.n = n
         self.chords = chords
+        self.draw_outer_edges = draw_outer_edges
 
         # crossing number of chords in solution
         self.crossings = {
@@ -57,7 +60,11 @@ class ChordSolution:
         # edge density of the best (?) (infinite) tiling of this polygon
         self.edge_density = (self.size + self.n / 2) / (self.n / 2 - 1)
 
-        print(f"{self.k}-planar drawing of {self.n}-gon with {self.size} edges")
+        self.description = (
+            f"{self.k}-planar drawing of {self.n}-gon with {self.size} chords"
+        )
+        if type(self) is ChordSolution:
+            print(self.description)
 
     def crossing_number(self, edge: Edge) -> int:
         return len(
@@ -118,7 +125,7 @@ class ChordSolution:
                         pass
         raise NotImplementedError
 
-    def visualize(self) -> None:
+    def visualize(self) -> tuple[nx.Graph, dict[Vertex, tuple[float, float]]]:
         """Visualizes a solution using networkx."""
         G = nx.Graph()
         G.add_edges_from(self.chords)
@@ -137,13 +144,14 @@ class ChordSolution:
             alpha=0.5,
             edge_color="tab:red",
         )
-        nx.draw_networkx_edges(
-            G,
-            point_positions,
-            edgelist=[(i, (i + 1) % self.n) for i in range(self.n)],
-            alpha=0.8,
-            edge_color="tab:grey",
-        )
+        if self.draw_outer_edges:
+            nx.draw_networkx_edges(
+                G,
+                point_positions,
+                edgelist=[(i, (i + 1) % self.n) for i in range(self.n)],
+                alpha=0.8,
+                edge_color="tab:grey",
+            )
         nx.draw_networkx_nodes(
             G,
             point_positions,
@@ -151,6 +159,7 @@ class ChordSolution:
             node_size=800,
             node_color="tab:green",
         )
+        return G, point_positions
 
     def __eq__(self, other: ChordSolution) -> bool:
         """Checks, if two solutions are congruent.
@@ -191,6 +200,114 @@ class ChordSolution:
                 return True
 
         return False
+
+
+class ConnectingSolution(ChordSolution):
+    def split_edges(
+        edges: list[Edge],
+        connector_vertices: list[Vertex],
+        is_neighbor: Callable[[Vertex, Vertex], bool] = lambda a, b: abs(a - b) == 1,
+    ) -> tuple[list[Edge], ...]:
+        real_chords = [
+            chord
+            for chord in edges
+            if chord[0] not in connector_vertices
+            and chord[1] not in connector_vertices
+            and not is_neighbor(chord[0], chord[1])
+        ]
+        outer_edges = [
+            edge
+            for edge in edges
+            if edge[0] not in connector_vertices
+            and edge[1] not in connector_vertices
+            and is_neighbor(edge[0], edge[1])
+        ]
+        connecting_chords = [
+            chord
+            for chord in edges
+            if (chord[0] in connector_vertices) ^ (chord[1] in connector_vertices)
+        ]
+        through_chords = [
+            chord
+            for chord in edges
+            if chord[0] in connector_vertices and chord[1] in connector_vertices
+        ]
+        return outer_edges, real_chords, connecting_chords, through_chords
+
+    def __init__(
+        self,
+        k,
+        n,
+        edges,
+        connector_vertices,
+        draw_outer_edges=False,
+    ):
+        (
+            outer_edges,
+            real_chords,
+            connecting_chords,
+            through_chords,
+        ) = ConnectingSolution.split_edges(edges, connector_vertices)
+        super().__init__(k, n, real_chords, draw_outer_edges)
+
+        self.connector_vertices = connector_vertices
+
+        self.outer_edges = outer_edges
+        self.connecting_chords = connecting_chords
+        self.through_chords = through_chords
+
+        self.weighted_edge_number = (
+            self.size + (len(self.outer_edges) + len(connecting_chords)) / 2
+        )
+
+        self.description = f"{k}-planar Connecting Solution in an {n}-gon with {len(connecting_chords)} connections and {self.size} chords. Weighted edge number: {self.weighted_edge_number}"
+        print(self.description)
+
+    def visualize(self):
+        G, point_positions = super().visualize()
+        for connector_vertex in self.connector_vertices:
+            low = math.floor(connector_vertex)
+            offset = connector_vertex - low
+            high = math.ceil(connector_vertex)
+
+            low = point_positions[low]
+            high = point_positions[high]
+
+            point_positions[connector_vertex] = tuple(
+                (offset * high[dim] + (1 - offset) * low[dim] for dim in range(2))
+            )
+
+        print(point_positions)
+
+        G.add_edges_from(self.outer_edges)
+        G.add_edges_from(self.connecting_chords)
+        G.add_edges_from(self.through_chords)
+
+        nx.draw_networkx_edges(
+            G,
+            point_positions,
+            edgelist=self.connecting_chords,
+            width=8,
+            alpha=0.5,
+            edge_color="tab:blue",
+        )
+
+        nx.draw_networkx_edges(
+            G,
+            point_positions,
+            edgelist=self.through_chords,
+            width=8,
+            alpha=0.3,
+            edge_color="tab:blue",
+        )
+
+        nx.draw_networkx_edges(
+            G,
+            point_positions,
+            edgelist=self.outer_edges,
+            alpha=0.8,
+            edge_color="tab:grey",
+        )
 
 
 class ChordSolver:
