@@ -15,7 +15,13 @@ def issue_chords(vertices: list[Vertex]) -> list[Edge]:
     return chords
 
 
-def basic_ilp(k: int, chords: list[Edge]) -> pulp.LpProblem:
+def crossings(chord: Edge, chords: list[Edge]) -> list[Edge]:
+    return [otherChord for otherChord in chords if ChordSolver.cross(chord, otherChord)]
+
+
+def basic_ilp(
+    k: int, chords: list[Edge]
+) -> tuple[pulp.LpProblem, dict[Edge, pulp.LpVariable]]:
     prob = LpProblem("Chords in Polygon", LpMaximize)
     n = len(chords)
     n_squared = n * n
@@ -26,9 +32,8 @@ def basic_ilp(k: int, chords: list[Edge]) -> pulp.LpProblem:
         prob += (
             pulp.lpSum(
                 [
-                    ilp_variables[otherChord]
-                    for otherChord in chords
-                    if ChordSolver.cross(chord, otherChord)
+                    ilp_variables[crossed_chord]
+                    for crossed_chord in crossings(chord, chords)
                 ]
             )
             + n_squared * ilp_variables[chord]
@@ -42,15 +47,62 @@ def solve_connectable(
     k: int,
     n: int,
     connecting_edges: tuple[int] | int = 0,
-    force_connections: tuple[tuple[int, int]] = (),
+    force_connections: tuple[tuple[int, int]] | int = (),
 ) -> ChordSolution:
     if type(connecting_edges) is not tuple:
         connecting_edges = tuple((connecting_edges,))
+
+    n_squared = n * n
+
     real_vertices = list(range(n))
     connector_vertices = [edge + 0.5 for edge in connecting_edges]
-    vertices = sorted(real_vertices + connector_vertices)
 
-    edges = issue_chords(vertices)
+    if type(force_connections) is not tuple:
+        force_connections = tuple(
+            ((con_vertex, force_connections) for con_vertex in connector_vertices)
+        )
+
+    force_connections_dict = {
+        connecting_edge + 0.5: max_crossings
+        for connecting_edge, max_crossings in force_connections
+    }
+
+    def max_number_of_crossings(connector_chord: Edge) -> int:
+        if (
+            connector_chord[0] in force_connections_dict.keys()
+            and connector_chord[1] in force_connections_dict.keys()
+        ):
+            return min(
+                force_connections_dict[connector_chord[0]],
+                force_connections_dict[connector_chord[1]],
+            )
+        if connector_chord[0] in force_connections_dict.keys():
+            return min(force_connections_dict[connector_chord[0]], k)
+        if connector_chord[1] in force_connections_dict.keys():
+            return min(force_connections_dict[connector_chord[1]], k)
+        return k
+
+    real_chords = issue_chords(real_vertices)
+
+    connection_chords: list[Edge] = []
+    # create connectable chords
+    # issue chords
+    connection_chords_template = [
+        tuple(sorted((connector_vertex, real_vertex)))
+        for real_vertex in real_vertices
+        for connector_vertex in connector_vertices
+        if abs(connector_vertex - real_vertex) >= 1
+    ]
+
+    connection_chords_grouped: list[list[Edge]] = [
+        [(a, b, i) for i in range(max(k, max_number_of_crossings((a, b))) + 1)]
+        for a, b in connection_chords_template
+    ]
+    connection_chords: list[Edge] = [
+        chord for chord_group in connection_chords_grouped for chord in chord_group
+    ]
+
+    edges = real_chords + connection_chords
     (
         outer_edges,
         real_chords,
@@ -60,31 +112,55 @@ def solve_connectable(
 
     ilp_prob, ilp_variables = basic_ilp(k, edges)
 
+    # limit number of crossings for connection chords according to i
+    for connection_chord in connection_chords:
+        if connection_chord[2] < k:
+            ilp_prob += (
+                pulp.lpSum(
+                    [
+                        ilp_variables[crossed_edge]
+                        for crossed_edge in crossings(connection_chord, edges)
+                    ]
+                )
+                + n_squared * ilp_variables[connection_chord]
+                <= connection_chord[2] + n_squared
+            )
+
+    # force only one of identical chords to exist
+    for connection_chord_group in connection_chords_grouped:
+        ilp_prob += (
+            pulp.lpSum(
+                [
+                    ilp_variables[parallel_chord]
+                    for parallel_chord in connection_chord_group
+                ]
+            )
+            <= 1
+        )
+
     # target function
     ilp_prob += pulp.lpSum(
         [ilp_variables[real_chord] for real_chord in real_chords]
+        + [0.5 * ilp_variables[outer_edge] for outer_edge in outer_edges]
         + [
-            0.5 * ilp_variables[shared_edge]
-            for shared_edge in connecting_chords + outer_edges
+            (0.5 + (k / 2 - connection_chord[2]) * 0.05)
+            * ilp_variables[connection_chord]
+            for connection_chord in connection_chords
         ]
         + [0.01 * ilp_variables[through_chord] for through_chord in through_chords]
     )
-
-    # force number of connections
-    for connecting_edge, number_of_connections in force_connections:
-        ilp_prob += pulp.LpSum(
-            [
-                ilp_variables[chord]
-                for chord in connecting_chords
-                if connecting_edge + 0.5 in chord
-            ]
-            == number_of_connections
-        )
 
     ilp_prob.solve()
 
     # analyse solution
     edges_in_solution = [edge for edge in edges if ilp_variables[edge].value() == 1]
+
+    print(ilp_prob.objective.value())
+    print([con_chord for con_chord in edges_in_solution if len(con_chord) > 2])
+
+    for i in range(len(edges_in_solution)):
+        if len(edges_in_solution[i]) > 2:
+            edges_in_solution[i] = edges_in_solution[i][:2]
 
     solution = ConnectingSolution(
         k,

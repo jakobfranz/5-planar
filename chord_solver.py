@@ -206,8 +206,14 @@ class ConnectingSolution(ChordSolution):
     def split_edges(
         edges: list[Edge],
         connector_vertices: list[Vertex],
-        is_neighbor: Callable[[Vertex, Vertex], bool] = lambda a, b: abs(a - b) == 1,
+        is_neighbor: Callable[[Vertex, Vertex], bool] = None,
     ) -> tuple[list[Edge], ...]:
+        if is_neighbor is None:
+            max_vertex = max([max(edge[:2]) for edge in edges])
+
+            def is_neighbor(a, b):
+                return abs(a - b) == 1 or abs(a - b) == max_vertex
+
         real_chords = [
             chord
             for chord in edges
@@ -248,6 +254,8 @@ class ConnectingSolution(ChordSolution):
             connecting_chords,
             through_chords,
         ) = ConnectingSolution.split_edges(edges, connector_vertices)
+        print(connector_vertices)
+        print(ConnectingSolution.split_edges(edges, connector_vertices))
         super().__init__(k, n, real_chords, draw_outer_edges)
 
         self.connector_vertices = connector_vertices
@@ -259,6 +267,8 @@ class ConnectingSolution(ChordSolution):
         self.weighted_edge_number = (
             self.size + (len(self.outer_edges) + len(connecting_chords)) / 2
         )
+
+        self.edge_density = self.weighted_edge_number / (n / 2 - 1)
 
         self.description = f"{k}-planar Connecting Solution in an {n}-gon with {len(connecting_chords)} connections and {self.size} chords. Weighted edge number: {self.weighted_edge_number}"
         print(self.description)
@@ -277,9 +287,8 @@ class ConnectingSolution(ChordSolution):
                 (offset * high[dim] + (1 - offset) * low[dim] for dim in range(2))
             )
 
-        print(point_positions)
-
         G.add_edges_from(self.outer_edges)
+        # print(self.connecting_chords)
         G.add_edges_from(self.connecting_chords)
         G.add_edges_from(self.through_chords)
 
@@ -309,6 +318,10 @@ class ConnectingSolution(ChordSolution):
             edge_color="tab:grey",
         )
 
+        nx.draw_networkx_nodes(
+            G, point_positions, self.connector_vertices, node_color="#666666"
+        )
+
 
 class ChordSolver:
     def cross(a: Edge, b: Edge):
@@ -324,7 +337,7 @@ class ChordSolver:
         Returns:
             True, if a and b cross
         """
-        if a[0] not in b and a[1] not in b:
+        if a[0] not in b[:2] and a[1] not in b[:2]:
             return (a[0] < b[0] and b[0] < a[1] and a[1] < b[1]) or (
                 b[0] < a[0] and a[0] < b[1] and b[1] < a[1]
             )
