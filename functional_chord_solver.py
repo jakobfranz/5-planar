@@ -1,5 +1,5 @@
 from pulp import LpProblem, LpMaximize, LpInteger, pulp
-from chord_solver import ChordSolution, ConnectingSolution, ChordSolver, Vertex, Edge
+from chord_solver import ConnectingSolution, Vertex, Edge, crossings
 from persistent_cache import persistent_cache
 import os
 
@@ -13,10 +13,6 @@ def issue_chords(vertices: list[Vertex]) -> list[Edge]:
         for j in range(i + 1, n):
             chords.append((vertices[i], vertices[j]))
     return chords
-
-
-def crossings(chord: Edge, chords: list[Edge]) -> list[Edge]:
-    return [otherChord for otherChord in chords if ChordSolver.cross(chord, otherChord)]
 
 
 def basic_ilp(
@@ -48,7 +44,7 @@ def solve_connectable(
     n: int,
     connecting_edges: tuple[int] | int = 0,
     force_connections: tuple[tuple[int, int]] | int = (),
-) -> ChordSolution:
+) -> ConnectingSolution:
     if type(connecting_edges) is not tuple:
         connecting_edges = tuple((connecting_edges,))
 
@@ -57,15 +53,21 @@ def solve_connectable(
     real_vertices = list(range(n))
     connector_vertices = [edge + 0.5 for edge in connecting_edges]
 
+    print(force_connections)
+
     if type(force_connections) is not tuple:
         force_connections = tuple(
-            ((con_vertex, force_connections) for con_vertex in connector_vertices)
+            ((con_edge, force_connections) for con_edge in connecting_edges)
         )
+
+    print(force_connections)
 
     force_connections_dict = {
         connecting_edge + 0.5: max_crossings
         for connecting_edge, max_crossings in force_connections
     }
+
+    print(force_connections_dict)
 
     def max_number_of_crossings(connector_chord: Edge) -> int:
         if (
@@ -92,10 +94,13 @@ def solve_connectable(
         for real_vertex in real_vertices
         for connector_vertex in connector_vertices
         if abs(connector_vertex - real_vertex) >= 1
+        and abs(connector_vertex - real_vertex) < n - 1
     ]
 
+    print(connection_chords_template)
+
     connection_chords_grouped: list[list[Edge]] = [
-        [(a, b, i) for i in range(max(k, max_number_of_crossings((a, b))) + 1)]
+        [(a, b, i) for i in range(max_number_of_crossings((a, b)) + 1)]
         for a, b in connection_chords_template
     ]
     connection_chords: list[Edge] = [
@@ -109,6 +114,8 @@ def solve_connectable(
         connecting_chords,
         through_chords,
     ) = ConnectingSolution.split_edges(edges, connector_vertices)
+
+    print(edges)
 
     ilp_prob, ilp_variables = basic_ilp(k, edges)
 

@@ -37,6 +37,8 @@ def retry(function):
         )
         return function(*args)
 
+    return retry_wrapper
+
 
 def persistent_cache(
     path_arg_mask: tuple[int, ...] = (),
@@ -80,6 +82,7 @@ def persistent_cache(
                 load(path_args)
 
             if args in loaded_cache[path_args]:
+                print("[persistent_cache]: Reusing cached value")
                 return loaded_cache[path_args][args]
             else:
                 print("[persistent_cache]: Running function")
@@ -135,6 +138,8 @@ def persistent_cache(
             # save files
             # gets called when the programm is terminated.
 
+            print("[persistent_cache]: Save cache to disk")
+
             for path_args, sub_cache in loaded_cache.items():
                 # create dir if it does not exists
                 file_path = get_path(path_args)
@@ -160,6 +165,7 @@ def persistent_cache(
         def load(path_args: tuple[Any, ...]) -> None:
             file_path = get_path(path_args)
             if os.path.exists(file_path):
+                print("[persistent_cache]: Load from disk")
                 with open(file_path, "rb") as cache_file:
                     loaded_cache[path_args] = pickle.load(cache_file)
             else:

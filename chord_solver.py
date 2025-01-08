@@ -8,6 +8,30 @@ Vertex = float
 Edge = tuple[Vertex, Vertex]
 
 
+def cross(a: Edge, b: Edge):
+    """Checks, if two edges cross.
+
+    Assumes both edges to be tuples of the adjacent
+    vertices with the lower numbered vertex coming first.
+
+    Args:
+        a: an edge
+        b: an edge
+
+    Returns:
+        True, if a and b cross
+    """
+    if a[0] not in b[:2] and a[1] not in b[:2]:
+        return (a[0] < b[0] and b[0] < a[1] and a[1] < b[1]) or (
+            b[0] < a[0] and a[0] < b[1] and b[1] < a[1]
+        )
+    return False
+
+
+def crossings(chord: Edge, chords: list[Edge]) -> list[Edge]:
+    return [otherChord for otherChord in chords if cross(chord, otherChord)]
+
+
 class ChordSolution:
     def __init__(
         self, k: int, n: int, chords: list[Edge], draw_outer_edges: bool = True
@@ -18,16 +42,7 @@ class ChordSolution:
         self.draw_outer_edges = draw_outer_edges
 
         # crossing number of chords in solution
-        self.crossings = {
-            chord: len(
-                [
-                    other_chord
-                    for other_chord in self.chords
-                    if ChordSolver.cross(chord, other_chord)
-                ]
-            )
-            for chord in self.chords
-        }
+        self.crossings = {chord: self.crossing_number(chord) for chord in self.chords}
 
         # number of chords in solution
         self.size = len(self.chords)
@@ -67,13 +82,7 @@ class ChordSolution:
             print(self.description)
 
     def crossing_number(self, edge: Edge) -> int:
-        return len(
-            [
-                other_chord
-                for other_chord in self.chords
-                if ChordSolver.cross(edge, other_chord)
-            ]
-        )
+        return len(crossings(edge, self.chords))
 
     def connect(self, removable_chords: int = 0) -> tuple[ChordSolution, Edge]:
         """Finds the optimal outer edge, on which another polygon may dock."""
@@ -278,7 +287,7 @@ class ConnectingSolution(ChordSolution):
         for connector_vertex in self.connector_vertices:
             low = math.floor(connector_vertex)
             offset = connector_vertex - low
-            high = math.ceil(connector_vertex)
+            high = math.ceil(connector_vertex) % self.n
 
             low = point_positions[low]
             high = point_positions[high]
@@ -324,25 +333,6 @@ class ConnectingSolution(ChordSolution):
 
 
 class ChordSolver:
-    def cross(a: Edge, b: Edge):
-        """Checks, if two edges cross.
-
-        Assumes both edges to be tuples of the adjacent
-        vertices with the lower numbered vertex coming first.
-
-        Args:
-            a: an edge
-            b: an edge
-
-        Returns:
-            True, if a and b cross
-        """
-        if a[0] not in b[:2] and a[1] not in b[:2]:
-            return (a[0] < b[0] and b[0] < a[1] and a[1] < b[1]) or (
-                b[0] < a[0] and a[0] < b[1] and b[1] < a[1]
-            )
-        return False
-
     def crossable_vertex_predicate(
         max_iterations: int
     ) -> tuple[Callable[[ChordSolution, int], tuple[bool, int]], int]:
@@ -428,11 +418,7 @@ class ChordSolver:
         for chord in self.chords:
             prob += (
                 pulp.lpSum(
-                    [
-                        x[otherChord]
-                        for otherChord in self.chords
-                        if ChordSolver.cross(chord, otherChord)
-                    ]
+                    [x[otherChord] for otherChord in crossings(chord, self.chords)]
                 )
                 + n_squared * x[chord]
                 <= self.max_crossings[chord] + n_squared

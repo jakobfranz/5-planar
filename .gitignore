@@ -15,3 +15,6 @@ ilp_korrekt_visualisiert.py
 # not ready files
 tiling.py
 tilings.py
+
+# test and pre-calculating files
+test.py
