@@ -1,5 +1,5 @@
 from pulp import LpProblem, LpMaximize, LpInteger, pulp
-from chord_solver import ConnectingSolution, Vertex, Edge, crossings
+from chord_solver import ConnectingSolution, ChordSolution, Vertex, Edge, crossings
 from persistent_cache import persistent_cache
 import os
 
@@ -53,21 +53,15 @@ def solve_connectable(
     real_vertices = list(range(n))
     connector_vertices = [edge + 0.5 for edge in connecting_edges]
 
-    print(force_connections)
-
     if type(force_connections) is not tuple:
         force_connections = tuple(
             ((con_edge, force_connections) for con_edge in connecting_edges)
         )
 
-    print(force_connections)
-
     force_connections_dict = {
         connecting_edge + 0.5: max_crossings
         for connecting_edge, max_crossings in force_connections
     }
-
-    print(force_connections_dict)
 
     def max_number_of_crossings(connector_chord: Edge) -> int:
         if (
@@ -97,8 +91,6 @@ def solve_connectable(
         and abs(connector_vertex - real_vertex) < n - 1
     ]
 
-    print(connection_chords_template)
-
     connection_chords_grouped: list[list[Edge]] = [
         [(a, b, i) for i in range(max_number_of_crossings((a, b)) + 1)]
         for a, b in connection_chords_template
@@ -114,8 +106,6 @@ def solve_connectable(
         connecting_chords,
         through_chords,
     ) = ConnectingSolution.split_edges(edges, connector_vertices)
-
-    print(edges)
 
     ilp_prob, ilp_variables = basic_ilp(k, edges)
 
@@ -177,3 +167,22 @@ def solve_connectable(
         draw_outer_edges=False,
     )
     return solution
+
+
+def double(k, n) -> tuple[ConnectingSolution, ChordSolution]:
+    half_gon = solve_connectable(k, n, n - 1, 3)
+    chords = half_gon.chords
+
+    chords2 = [tuple(sorted((a + n - 1, (b + n - 1) % (2 * n - 2)))) for a, b in chords]
+
+    connecting_chords = half_gon.connecting_chords
+
+    connected_chords = [
+        tuple(sorted((a, (a + n - 1) % (2 * n - 2)))) for a, b in connecting_chords
+    ]
+
+    full_gon = ChordSolution(
+        5, 2 * n - 2, chords + chords2 + connected_chords + [(0, n - 1)]
+    )
+
+    return half_gon, full_gon

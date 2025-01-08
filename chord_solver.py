@@ -218,7 +218,7 @@ class ConnectingSolution(ChordSolution):
         is_neighbor: Callable[[Vertex, Vertex], bool] = None,
     ) -> tuple[list[Edge], ...]:
         if is_neighbor is None:
-            max_vertex = max([max(edge[:2]) for edge in edges])
+            max_vertex = math.floor(max([max(edge[:2]) for edge in edges]))
 
             def is_neighbor(a, b):
                 return abs(a - b) == 1 or abs(a - b) == max_vertex
