@@ -3,6 +3,7 @@
 from typing import Any
 import atexit
 import pickle
+import jsonpickle
 import os.path
 import os
 from time import sleep
@@ -75,6 +76,7 @@ def persistent_cache(
     def persistent_cache_decorator(function):
         # actual decorator with given parameters
         loaded_cache = {}
+        preamble = f"[persistent_chache/{function.__name__}]: "
 
         def persistent_cache_wrapper(*args):
             path_args = path_arguments(args)
@@ -82,10 +84,10 @@ def persistent_cache(
                 load(path_args)
 
             if args in loaded_cache[path_args]:
-                print("[persistent_cache]: Reusing cached value")
+                print(preamble + "Reusing cached value")
                 return loaded_cache[path_args][args]
             else:
-                print("[persistent_cache]: Running function")
+                print(preamble + "Running function")
                 rv = function(*args)
                 loaded_cache[path_args][args] = rv
                 return rv
@@ -99,7 +101,7 @@ def persistent_cache(
                 p = os.path.join(p, filename)
             p = os.path.join(p, function.__name__)
             p = os.path.join(p, *(str(path_segment) for path_segment in path_args))
-            p += ".cache"
+            p += ".json"
             return p
 
         @retry
@@ -138,7 +140,7 @@ def persistent_cache(
             # save files
             # gets called when the programm is terminated.
 
-            print("[persistent_cache]: Save cache to disk")
+            print(preamble + "Save cache to disk")
 
             for path_args, sub_cache in loaded_cache.items():
                 # create dir if it does not exists
@@ -150,26 +152,32 @@ def persistent_cache(
                 lock(file_path)
                 # get newest content of cache file
                 if os.path.exists(file_path):
-                    with open(file_path, "rb") as cache_file:
-                        combined_cache = pickle.load(cache_file)
-                        # combine with new caches. If conflicts happen, the newer value is assumed to be correct
-                        combined_cache.update(sub_cache)
+                    combined_cache = load_file(file_path)
+                    # combine with new caches. If conflicts happen, the newer value is assumed to be correct
+                    combined_cache.update(sub_cache)
                 else:
                     combined_cache = sub_cache
                 # save
-                with open(file_path, "wb") as cache_file:
-                    pickle.dump(combined_cache, cache_file)
+                with open(file_path, "w") as cache_file:
+                    json_str = jsonpickle.encode(combined_cache, keys=True, indent=2)
+                    cache_file.write(json_str)
                 # unlock file
                 unlock(file_path)
 
         def load(path_args: tuple[Any, ...]) -> None:
             file_path = get_path(path_args)
             if os.path.exists(file_path):
-                print("[persistent_cache]: Load from disk")
-                with open(file_path, "rb") as cache_file:
-                    loaded_cache[path_args] = pickle.load(cache_file)
+                print(preamble + "Load from disk")
+                loaded_cache[path_args] = load_file(file_path)
             else:
                 loaded_cache[path_args] = {}
+            print(loaded_cache)
+
+        def load_file(file_path: str) -> Any:
+            with open(file_path, "r") as cache_file:
+                json_str = cache_file.read()
+                decoded = jsonpickle.decode(json_str, keys=True)
+            return decoded
 
         atexit.register(save)
         return persistent_cache_wrapper

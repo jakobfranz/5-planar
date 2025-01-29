@@ -1,0 +1,328 @@
+{
+  "json://{\"py/tuple\": [5, 6, 5, 3]}": {
+    "py/object": "chord_solver.ConnectingSolution",
+    "k": 5,
+    "n": 6,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          2,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          2,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          3,
+          5
+        ]
+      }
+    ],
+    "draw_outer_edges": false,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 3,
+      "json://{\"py/tuple\": [0, 3]}": 4,
+      "json://{\"py/tuple\": [0, 4]}": 3,
+      "json://{\"py/tuple\": [1, 3]}": 3,
+      "json://{\"py/tuple\": [1, 4]}": 4,
+      "json://{\"py/tuple\": [1, 5]}": 3,
+      "json://{\"py/tuple\": [2, 4]}": 3,
+      "json://{\"py/tuple\": [2, 5]}": 4,
+      "json://{\"py/tuple\": [3, 5]}": 3
+    },
+    "size": 9,
+    "vertex_chord_degree": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "saturated_chords": [],
+    "crossable_vertices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "edge_density": 6.25,
+    "description": "5-planar Connecting Solution in an 6-gon with 2 connections and 9 chords. Weighted edge number: 12.5",
+    "connector_vertices": [
+      5.5
+    ],
+    "outer_edges": [
+      {
+        "py/tuple": [
+          0,
+          1
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          2,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          3,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          5
+        ]
+      }
+    ],
+    "connecting_chords": [
+      {
+        "py/tuple": [
+          1,
+          5.5
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          5.5
+        ]
+      }
+    ],
+    "through_chords": [],
+    "weighted_edge_number": 12.5
+  },
+  "json://{\"py/tuple\": [5, 7, 6, 3]}": {
+    "py/object": "chord_solver.ConnectingSolution",
+    "k": 5,
+    "n": 7,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          2,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          2,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          3,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          6
+        ]
+      }
+    ],
+    "draw_outer_edges": false,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 4,
+      "json://{\"py/tuple\": [0, 3]}": 5,
+      "json://{\"py/tuple\": [0, 4]}": 4,
+      "json://{\"py/tuple\": [0, 5]}": 2,
+      "json://{\"py/tuple\": [1, 3]}": 3,
+      "json://{\"py/tuple\": [1, 4]}": 4,
+      "json://{\"py/tuple\": [1, 5]}": 4,
+      "json://{\"py/tuple\": [1, 6]}": 4,
+      "json://{\"py/tuple\": [2, 4]}": 3,
+      "json://{\"py/tuple\": [2, 5]}": 5,
+      "json://{\"py/tuple\": [3, 5]}": 4,
+      "json://{\"py/tuple\": [4, 6]}": 4
+    },
+    "size": 12,
+    "vertex_chord_degree": [
+      4,
+      4,
+      3,
+      3,
+      4,
+      4,
+      2
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          2,
+          5
+        ]
+      }
+    ],
+    "crossable_vertices": [
+      1,
+      4,
+      6
+    ],
+    "edge_density": 6.4,
+    "description": "5-planar Connecting Solution in an 7-gon with 1 connections and 12 chords. Weighted edge number: 16.0",
+    "connector_vertices": [
+      6.5
+    ],
+    "outer_edges": [
+      {
+        "py/tuple": [
+          0,
+          1
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          2,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          3,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          6
+        ]
+      }
+    ],
+    "connecting_chords": [
+      {
+        "py/tuple": [
+          5,
+          6.5
+        ]
+      }
+    ],
+    "through_chords": [],
+    "weighted_edge_number": 16.0
+  }
+}

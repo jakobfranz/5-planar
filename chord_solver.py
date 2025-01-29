@@ -84,6 +84,9 @@ class ChordSolution:
     def crossing_number(self, edge: Edge) -> int:
         return len(crossings(edge, self.chords))
 
+    def graph_crossing_number(self) -> int:
+        return sum([self.crossing_number(edge) for edge in self.chords]) / 2
+
     def connect(self, removable_chords: int = 0) -> tuple[ChordSolution, Edge]:
         """Finds the optimal outer edge, on which another polygon may dock."""
         # disect solution on saturated edges
