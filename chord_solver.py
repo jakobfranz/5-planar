@@ -455,7 +455,7 @@ class ChordSolver:
         return solution
 
     def remove_solution(
-        self, solution: ChordSolution, remove_congruents: bool = False
+        self, solution: ChordSolution, remove_congruents: bool = True
     ) -> None:
         """Removes a optimal solution from the solution space of the ILP.
 
