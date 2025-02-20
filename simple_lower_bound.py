@@ -32,6 +32,8 @@ bottom_multiedges = [
 
 
 def optimal_dodecagons() -> list[ChordSolution]:
+    # both optimal outer 5-planar graphs with n=12
+    # only one will be used for simple graphs
     solver = ChordSolver(5, 12)
     solution1 = solver.solve()
     solver.remove_solution(solution1)
@@ -42,9 +44,9 @@ def optimal_dodecagons() -> list[ChordSolution]:
     return [solution1, solution2]
 
 
-def simple_dodecagon(homotopic_edges: list[Edge]):
+def simple_dodecagon(multiedges: list[Edge]):
     solver = ChordSolver(5, 12)
-    for edge in homotopic_edges:
+    for edge in multiedges:
         solver.remove_edge(edge)
     solution = solver.solve()
     print(solution.chords)
