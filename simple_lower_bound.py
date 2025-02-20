@@ -4,7 +4,7 @@ from chord_solver import ChordSolver, ChordSolution, Edge
 # in the construction of 6.2n lower bound for simple
 # framed graphs
 
-top_homotopic_edges = [
+top_multiedges = [
     (0, 2),
     (1, 3),
     (5, 7),
@@ -17,7 +17,7 @@ top_homotopic_edges = [
     (0, 8),
 ]
 
-bottom_homotopic_edges = [
+bottom_multiedges = [
     (2, 4),
     (1, 3),
     (5, 7),
@@ -52,5 +52,5 @@ def simple_dodecagon(homotopic_edges: list[Edge]):
 
 
 optimal_dodecagons()
-simple_dodecagon(top_homotopic_edges)
-simple_dodecagon(bottom_homotopic_edges)
+simple_dodecagon(top_multiedges)
+simple_dodecagon(bottom_multiedges)
