@@ -50,7 +50,7 @@ short_sticks = sum(
     [[make_edge(v - 3, v), make_edge(v, v + 3)] for v in edge_vertices], []
 )
 
-middle_segments = [make_edge(v, v + 2) for v in edge_vertices[:-1]]
+middle_segments = [make_edge(v, v + 2) for v in edge_vertices]
 
 # each short_stick and middle segment exists up to 3 times
 # outer edges may be real outer edges (planar) or chords of the graph
@@ -111,7 +111,7 @@ for vertex in vertices:
             for incident_edge in edges
             if vertex in incident_edge[:2]
         ]
-    ) - ilp_vars[
+    ) + ilp_vars[
         make_edge(vertex - 2, vertex + 2)
     ] + 2 * n_cubed >= 5 + n_cubed * pulp.lpSum(
         [
@@ -123,6 +123,8 @@ for vertex in vertices:
         ]
     )
 
+# force only one chord outer edge to exist
+prob += pulp.lpSum([ilp_vars[(*o_edge, EdgeType.CHORD)] for o_edge in outer_edges]) <= 1
 
 # target function, maximize number of chords
 prob += (
