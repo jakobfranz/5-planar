@@ -1,30 +1,85 @@
 from pulp import LpProblem, LpMaximize, LpInteger, pulp
-from chord_solver import ConnectingSolution, ChordSolution, Vertex, Edge, crossings
+from chord_solver import (
+    ConnectingSolution,
+    ChordSolution,
+    Vertex,
+    Edge,
+    crossings,
+)
 from persistent_cache import persistent_cache
 import os
+from typing import Callable
 
 FILE = os.path.basename(__file__)
 
 
-def issue_chords(vertices: list[Vertex]) -> list[Edge]:
+def edge(a: Vertex, b: Vertex) -> Edge:
+    """Make an edge connecting ```a``` and ```b```
+
+    Edges are, by convention here, tuples of length >= 2
+    with the vertices as first and second argument
+    sorted ascending.
+
+    Args:
+        a:
+            A vertex
+        b:
+            Another vertex (not necessarily different)
+    Returns:
+        Edge connecting ```a``` and ```b``` according to
+        internal convention. ```len(edge) == 2```."""
+    return tuple(sorted([a, b]))
+
+
+def issue_chords(vertices: list[Vertex], issue_boundary: bool = True) -> list[Edge]:
     n = len(vertices)
+    if issue_boundary:
+        offset = 0
+    else:
+        offset = 1
     chords = []
-    for i in range(0, n - 1):
-        for j in range(i + 1, n):
+    for i in range(0, n - 1 - offset):
+        for j in range(i + 1 + offset, n):
             chords.append((vertices[i], vertices[j]))
+    chords.remove((vertices[0], vertices[n - 1]))
     return chords
 
 
+def exists_var_name(edge: Edge) -> str:
+    return f"exists_{edge}"
+
+
 def basic_ilp(
-    k: int, chords: list[Edge]
+    k: int,
+    chords: list[Edge],
+    optimizer=LpMaximize,
+    multiplicity: Callable[[Edge], int] = lambda chord: 1,
 ) -> tuple[pulp.LpProblem, dict[Edge, pulp.LpVariable]]:
-    prob = LpProblem("Chords in Polygon", LpMaximize)
+    prob = LpProblem("Chords in Polygon", optimizer)
     n = len(chords)
     n_squared = n * n
-    ilp_variables = pulp.LpVariable.dicts(
-        "chords", chords, lowBound=0, upBound=1, cat=LpInteger
-    )
+    ilp_variables = {
+        chord: pulp.LpVariable(
+            f"chord_{chord}", lowBound=0, upBound=multiplicity(chord), cat=LpInteger
+        )
+        for chord in chords
+    }
+    # ilp_variables = pulp.LpVariable.dicts(
+    #     "chords", chords, lowBound=0, upBound=1, cat=LpInteger
+    # )
     for chord in chords:
+        mult = multiplicity(chord)
+        if mult == 1:
+            chord_exist_var = ilp_variables[chord]
+        else:
+            # if a chord has a higher multiplicity we need an auxiliary variable
+            # to force the at most k crossings
+            chord_exist_var = pulp.LpVariable(
+                f"exists_{chord}", lowBound=0, upBound=1, cat=LpInteger
+            )
+            ilp_variables[exists_var_name(chord)] = chord_exist_var
+            prob += 1 / mult * ilp_variables[chord] <= chord_exist_var
+
         prob += (
             pulp.lpSum(
                 [
@@ -32,10 +87,42 @@ def basic_ilp(
                     for crossed_chord in crossings(chord, chords)
                 ]
             )
-            + n_squared * ilp_variables[chord]
+            + n_squared * chord_exist_var
             <= k + n_squared
         )
     return prob, ilp_variables
+
+
+def is_incident(edge: Edge, vertices: Vertex | list[Vertex]) -> bool:
+    """Decides if an edge is incident to one or more of the given vertices.
+
+    Args:
+        edge:
+            An edge
+        vertices:
+            A single vertex or a list of vertices
+    Returns:
+        Bool ```True``` if there is a vertex in ```vertices``` that is incident to ```edge```
+    """
+    if type(vertices) == Vertex:
+        vertices = [vertices]
+    return len(set(edge[:2]).intersection(set(vertices))) > 0
+
+
+def incident_edges(vertices: Vertex | list[Vertex], edges: list[Edge]) -> list[Edge]:
+    """Returns all edges in ```edges``` that are incident to a vertex of ```vertices```.
+
+    Incidence is determined by ```is_incident```.
+
+    Args:
+        vertices:
+            A single or a list of vertices.
+        edges:
+            A list of edges
+    Returns:
+        Sublist of ```edges``` with all edges that are incident to at least on vertex in ```vertices```.
+    """
+    return [edge for edge in edges if is_incident(edge, vertices)]
 
 
 @persistent_cache(0, FILE)

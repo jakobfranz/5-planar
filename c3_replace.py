@@ -128,9 +128,8 @@ prob += pulp.lpSum([ilp_vars[(*o_edge, EdgeType.CHORD)] for o_edge in outer_edge
 
 # target function, maximize number of chords
 prob += (
-    pulp.lpSum([ilp_vars[edge] for edge in edges])
-    + 3
-    + 1 / n_cubed * pulp.lpSum([ilp_vars[real_chord] for real_chord in real_chords])
+    pulp.lpSum([ilp_vars[edge] for edge in edges]) + 3
+    #    + 1 / n_cubed * pulp.lpSum([ilp_vars[real_chord] for real_chord in real_chords])
 )
 
 prob.solve()

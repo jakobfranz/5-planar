@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, Dict
 from pulp import LpProblem, LpMaximize, LpInteger, pulp
 import networkx as nx
 import math
@@ -137,16 +137,26 @@ class ChordSolution:
                         pass
         raise NotImplementedError
 
-    def visualize(self) -> tuple[nx.Graph, dict[Vertex, tuple[float, float]]]:
-        """Visualizes a solution using networkx."""
+    def to_nx_graph(self) -> nx.Graph:
         G = nx.Graph()
         G.add_edges_from(self.chords)
-        # G.add_edges_from([(i, (i + 1) % self.n) for i in range(self.n)])
+        return G
+
+    def _point_positions(self) -> Dict[Vertex, tuple[float, float]]:
         n = self.n
         point_positions = {
             i: (math.sin((2 * math.pi / n) * i), math.cos((2 * math.pi / n) * i))
             for i in range(n)
         }
+        return point_positions
+
+    def visualize(self) -> None:
+        """Visualizes a solution using networkx."""
+        G = self.to_nx_graph()
+        # G.add_edges_from([(i, (i + 1) % self.n) for i in range(self.n)])
+
+        point_positions = self._point_positions()
+
         nx.draw(G, pos=point_positions, with_labels=True)
         nx.draw_networkx_edges(
             G,
@@ -171,7 +181,6 @@ class ChordSolution:
             node_size=800,
             node_color="tab:green",
         )
-        return G, point_positions
 
     def __eq__(self, other: ChordSolution) -> bool:
         """Checks, if two solutions are congruent.
@@ -285,8 +294,16 @@ class ConnectingSolution(ChordSolution):
         self.description = f"{k}-planar Connecting Solution in an {n}-gon with {len(connecting_chords)} connections and {self.size} chords. Weighted edge number: {self.weighted_edge_number}"
         print(self.description)
 
-    def visualize(self):
-        G, point_positions = super().visualize()
+    def to_nx_graph(self) -> nx.Graph:
+        G = super().to_nx_graph()
+        G.add_edges_from(self.outer_edges)
+        G.add_edges_from(self.connecting_chords)
+        G.add_edges_from(self.through_chords)
+        return G
+
+    def _point_positions(self) -> Dict[Vertex, tuple[float, float]]:
+        point_positions = super()._point_positions()
+
         for connector_vertex in self.connector_vertices:
             low = math.floor(connector_vertex)
             offset = connector_vertex - low
@@ -299,10 +316,12 @@ class ConnectingSolution(ChordSolution):
                 (offset * high[dim] + (1 - offset) * low[dim] for dim in range(2))
             )
 
-        G.add_edges_from(self.outer_edges)
-        # print(self.connecting_chords)
-        G.add_edges_from(self.connecting_chords)
-        G.add_edges_from(self.through_chords)
+        return point_positions
+
+    def visualize(self):
+        super().visualize()
+        G = self.to_nx_graph()
+        point_positions = self._point_positions()
 
         nx.draw_networkx_edges(
             G,

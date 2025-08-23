@@ -1,0 +1,12 @@
+{
+  "json://{\"py/tuple\": [5, 3]}": 0,
+  "json://{\"py/tuple\": [5, 4]}": 2,
+  "json://{\"py/tuple\": [5, 5]}": 5,
+  "json://{\"py/tuple\": [5, 6]}": 9,
+  "json://{\"py/tuple\": [5, 7]}": 12,
+  "json://{\"py/tuple\": [5, 8]}": 14,
+  "json://{\"py/tuple\": [5, 9]}": 17,
+  "json://{\"py/tuple\": [5, 10]}": 19,
+  "json://{\"py/tuple\": [5, 11]}": 22,
+  "json://{\"py/tuple\": [5, 12]}": 26
+}
