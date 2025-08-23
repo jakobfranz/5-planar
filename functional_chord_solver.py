@@ -21,9 +21,9 @@ def edge(a: Vertex, b: Vertex) -> Edge:
     sorted ascending.
 
     Args:
-        a:
+        a (Vertex):
             A vertex
-        b:
+        b (Vertex):
             Another vertex (not necessarily different)
     Returns:
         Edge connecting ```a``` and ```b``` according to
@@ -31,7 +31,24 @@ def edge(a: Vertex, b: Vertex) -> Edge:
     return tuple(sorted([a, b]))
 
 
-def issue_chords(vertices: list[Vertex], issue_boundary: bool = True) -> list[Edge]:
+def issue_chords(vertices: list[Vertex], issue_boundary: bool = False) -> list[Edge]:
+    """Returns all chords of the complete graph K_n on ```vertices```.
+
+    Order of ```vertices``` is the order in which the vertices lie on the outer face.
+    Chords are all edges, that do not connect consecutive vertices.
+
+    Optionally, the boundary edges can be included as well.
+
+    Args:
+        vertices (list[Vertex]):
+            List of Vertices
+        issue_boundary (bool):
+            Boolean flag to determine, whether boundary edges should be
+            included in the return. By default ```False```.
+    Returns:
+        List with all chords or all edges of the complete graph on ```vertices```.
+        The number of returned edges is ```n choose 2 - n``` or ```n choose 2``` depending on ```issue_boundary```.
+    """
     n = len(vertices)
     if issue_boundary:
         offset = 0
@@ -46,40 +63,99 @@ def issue_chords(vertices: list[Vertex], issue_boundary: bool = True) -> list[Ed
 
 
 def exists_var_name(edge: Edge) -> str:
+    """Get name of the binary ILP variable that describes if an edge exists in the solution.
+
+    If ```edge``` is possibly a multi-edge in the solution of an ILP,
+    we need two variables for that edge. One to determine how often it
+    exists, and one to determine whether it exists at least once.
+
+    The function ```basic_ilp``` returnes a dictionary of all ilp
+    variables it created. In it the first variable type (the
+    multiplicity type) has ```edge``` as its key, while the second
+    (existence) uses the name created by this function.
+
+    Args:
+        edge (Edge):
+            An Edge
+    Returns:
+        name of the ilp-variable describing the existence of ```edge```.
+    """
     return f"exists_{edge}"
 
 
 def basic_ilp(
     k: int,
     chords: list[Edge],
-    optimizer=LpMaximize,
+    optimizer: int = LpMaximize,
     multiplicity: Callable[[Edge], int] = lambda chord: 1,
 ) -> tuple[pulp.LpProblem, dict[Edge, pulp.LpVariable]]:
+    """Create a basic ILP encodig crossing constraints of outer-k-planar graphs.
+
+    A pulp ILP is created. Each chord is represented by one or two
+    variables. In a valid solution of that ILP each existing chord
+    is crossed by at most ```k``` other chords.
+
+    Both the pulp ILP ```prob``` and a dictionary with the chord
+    variables ```ilp_variables``` is returned.
+
+    Chords may be possible multi-edges, determined by ```multiplicity```. ```ilp_variables[chord]``` describes, how often
+    '```chord``` is in the solution of the ILP. If chord may in fact be
+    a multi-edge, we need an auxiliary variable describing whether
+    '```chord``` exists at least once. This variable can be accessed
+    through ```ilp_variables[exists_var_name(chord)]```.
+
+    The chords crossing a given a chord are determined by ```chord_solver.crossings()```.
+
+    The returned ILP can be expanded upon. Especially a target function
+    must be set.
+
+    Args:
+        k (int):
+            Maximal number of crossings per edge
+        chords (list[Edge]):
+            List of the chords that may exist in the solution
+        optimizer (int):
+            '```pulp.LpMaximize``` or ```pulp.LpMinimize``` depending on
+            whether the target function should be maximized or minimized.
+            By default ```LpMaximize```.
+        multiplicity (Callable[[Edge], int]):
+            A function that, given a chord, returns how often this chord
+            may be in the solution at most. Must be an integer.
+    Returns:
+        A tuple containing
+
+        - prob (pulp.LpProblem): A pulp ILP encoding the crossing constraint of outer-k-planar graphs for the given chords.
+        - ilp_variables (dict[Edge, pulp.LpVariable]): A dictionary with the used variables in the ILP
+    """
     prob = LpProblem("Chords in Polygon", optimizer)
     n = len(chords)
+
+    # Big M
     n_squared = n * n
+
+    # create multiplicity variables
     ilp_variables = {
         chord: pulp.LpVariable(
             f"chord_{chord}", lowBound=0, upBound=multiplicity(chord), cat=LpInteger
         )
         for chord in chords
     }
-    # ilp_variables = pulp.LpVariable.dicts(
-    #     "chords", chords, lowBound=0, upBound=1, cat=LpInteger
-    # )
+
     for chord in chords:
         mult = multiplicity(chord)
         if mult == 1:
             chord_exist_var = ilp_variables[chord]
         else:
-            # if a chord has a higher multiplicity we need an auxiliary variable
-            # to force the at most k crossings
+            # if a chord has a higher multiplicity we need an
+            # auxiliary  binary variable (existence variable)
             chord_exist_var = pulp.LpVariable(
                 f"exists_{chord}", lowBound=0, upBound=1, cat=LpInteger
             )
             ilp_variables[exists_var_name(chord)] = chord_exist_var
-            prob += 1 / mult * ilp_variables[chord] <= chord_exist_var
+            # exist_var == 1 iff multiplicity >= 1
+            prob += 1 / (mult + 1) * ilp_variables[chord] <= chord_exist_var
 
+        # crossing constraint
         prob += (
             pulp.lpSum(
                 [
@@ -97,9 +173,9 @@ def is_incident(edge: Edge, vertices: Vertex | list[Vertex]) -> bool:
     """Decides if an edge is incident to one or more of the given vertices.
 
     Args:
-        edge:
+        edge (Edge):
             An edge
-        vertices:
+        vertices (Vertex | list[Vertex]):
             A single vertex or a list of vertices
     Returns:
         Bool ```True``` if there is a vertex in ```vertices``` that is incident to ```edge```
@@ -115,9 +191,9 @@ def incident_edges(vertices: Vertex | list[Vertex], edges: list[Edge]) -> list[E
     Incidence is determined by ```is_incident```.
 
     Args:
-        vertices:
+        vertices (Vertex | list[Vertex]):
             A single or a list of vertices.
-        edges:
+        edges (list[Edge]):
             A list of edges
     Returns:
         Sublist of ```edges``` with all edges that are incident to at least on vertex in ```vertices```.
@@ -125,6 +201,7 @@ def incident_edges(vertices: Vertex | list[Vertex], edges: list[Edge]) -> list[E
     return [edge for edge in edges if is_incident(edge, vertices)]
 
 
+# TODO documentation and revision
 @persistent_cache(0, FILE)
 def solve_connectable(
     k: int,
@@ -165,7 +242,7 @@ def solve_connectable(
             return min(force_connections_dict[connector_chord[1]], k)
         return k
 
-    real_chords = issue_chords(real_vertices)
+    real_chords = issue_chords(real_vertices, issue_boundary=True)
 
     connection_chords: list[Edge] = []
     # create connectable chords

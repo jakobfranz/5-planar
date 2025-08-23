@@ -1,18 +1,41 @@
 from typing import Callable
 from chords import number_of_chords
-from persistent_cache import persistent_cache
 import os
 
 FILE = os.path.basename(__file__)
 
 
 def density_outerplanar(n, chords):
+    """Calculate the density of outer-planar graphs made by tiling it with a smaller graph.
+
+    Args:
+        n (int):
+            Size of the outer-planar graph tile
+        chords (int):
+            Number of chords in the outer-planar graph tile
+    Returns
+        Density of these tiled graphs with
+        - bound_linear (float): Linear factor of density
+        - bound_constant (float): Constant
+        The density is ```bound_linear * n - bound_constant"""
     bound_linear = (chords + 1) / (n - 2) + 1
     bound_constant = 2 * bound_linear - 1
     return (bound_linear, bound_constant)
 
 
 def density_h_framed(n, chords):
+    """Calculate the density of k-planar h-framed graphs made by tiling it with a smaller graph.
+
+    Args:
+        n (int):
+            Size of the outer-planar graph tile
+        chords (int):
+            Number of chords in the outer-planar graph tile
+    Returns
+        Density of these tiled graphs with
+        - bound_linear (float): Linear factor of density
+        - bound_constant (float): Constant
+        The density is ```bound_linear * n - bound_constant"""
     bound_linear = (n + 2 * chords) / (n - 2)
     bound_constant = 2 * bound_linear
     return (bound_linear, bound_constant)

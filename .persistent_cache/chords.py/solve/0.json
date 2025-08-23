@@ -1,0 +1,1567 @@
+{
+  "json://{\"py/tuple\": [0, 3]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 3,
+    "chords": [],
+    "draw_outer_edges": true,
+    "crossings": {},
+    "size": 0,
+    "vertex_chord_degree": [
+      0,
+      0,
+      0
+    ],
+    "saturated_chords": [],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 3-gon with 0 chords"
+  },
+  "json://{\"py/tuple\": [0, 4]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 4,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 0
+    },
+    "size": 1,
+    "vertex_chord_degree": [
+      1,
+      0,
+      1,
+      0
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 4-gon with 1 chords"
+  },
+  "json://{\"py/tuple\": [0, 5]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 5,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          2,
+          4
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 0,
+      "json://{\"py/tuple\": [2, 4]}": 0
+    },
+    "size": 2,
+    "vertex_chord_degree": [
+      1,
+      0,
+      2,
+      0,
+      1
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          2,
+          4
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 5-gon with 2 chords"
+  },
+  "json://{\"py/tuple\": [0, 6]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 6,
+    "chords": [
+      {
+        "py/tuple": [
+          1,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          3,
+          5
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [1, 3]}": 0,
+      "json://{\"py/tuple\": [1, 5]}": 0,
+      "json://{\"py/tuple\": [3, 5]}": 0
+    },
+    "size": 3,
+    "vertex_chord_degree": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      2
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          1,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          3,
+          5
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 6-gon with 3 chords"
+  },
+  "json://{\"py/tuple\": [0, 7]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 7,
+    "chords": [
+      {
+        "py/tuple": [
+          1,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          2,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          6
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [1, 4]}": 0,
+      "json://{\"py/tuple\": [1, 6]}": 0,
+      "json://{\"py/tuple\": [2, 4]}": 0,
+      "json://{\"py/tuple\": [4, 6]}": 0
+    },
+    "size": 4,
+    "vertex_chord_degree": [
+      0,
+      2,
+      1,
+      0,
+      3,
+      0,
+      2
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          1,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          1,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          2,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          6
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 7-gon with 4 chords"
+  },
+  "json://{\"py/tuple\": [0, 8]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 8,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          3,
+          7
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          7
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 0,
+      "json://{\"py/tuple\": [0, 3]}": 0,
+      "json://{\"py/tuple\": [3, 7]}": 0,
+      "json://{\"py/tuple\": [4, 6]}": 0,
+      "json://{\"py/tuple\": [4, 7]}": 0
+    },
+    "size": 5,
+    "vertex_chord_degree": [
+      2,
+      0,
+      1,
+      2,
+      2,
+      0,
+      1,
+      2
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          3,
+          7
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          7
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 8-gon with 5 chords"
+  },
+  "json://{\"py/tuple\": [0, 9]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 9,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          7
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          8
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          7
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 0,
+      "json://{\"py/tuple\": [0, 3]}": 0,
+      "json://{\"py/tuple\": [0, 4]}": 0,
+      "json://{\"py/tuple\": [4, 7]}": 0,
+      "json://{\"py/tuple\": [4, 8]}": 0,
+      "json://{\"py/tuple\": [5, 7]}": 0
+    },
+    "size": 6,
+    "vertex_chord_degree": [
+      3,
+      0,
+      1,
+      1,
+      3,
+      1,
+      0,
+      2,
+      1
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          7
+        ]
+      },
+      {
+        "py/tuple": [
+          4,
+          8
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          7
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 9-gon with 6 chords"
+  },
+  "json://{\"py/tuple\": [0, 10]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 10,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          7
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          8
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          9
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 0,
+      "json://{\"py/tuple\": [0, 3]}": 0,
+      "json://{\"py/tuple\": [0, 4]}": 0,
+      "json://{\"py/tuple\": [0, 5]}": 0,
+      "json://{\"py/tuple\": [5, 7]}": 0,
+      "json://{\"py/tuple\": [5, 8]}": 0,
+      "json://{\"py/tuple\": [5, 9]}": 0
+    },
+    "size": 7,
+    "vertex_chord_degree": [
+      4,
+      0,
+      1,
+      1,
+      1,
+      4,
+      0,
+      1,
+      1,
+      1
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          7
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          8
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          9
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 10-gon with 7 chords"
+  },
+  "json://{\"py/tuple\": [0, 11]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 11,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          8
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          8
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 0,
+      "json://{\"py/tuple\": [0, 3]}": 0,
+      "json://{\"py/tuple\": [0, 4]}": 0,
+      "json://{\"py/tuple\": [0, 5]}": 0,
+      "json://{\"py/tuple\": [0, 9]}": 0,
+      "json://{\"py/tuple\": [5, 8]}": 0,
+      "json://{\"py/tuple\": [5, 9]}": 0,
+      "json://{\"py/tuple\": [6, 8]}": 0
+    },
+    "size": 8,
+    "vertex_chord_degree": [
+      5,
+      0,
+      1,
+      1,
+      1,
+      3,
+      1,
+      0,
+      2,
+      2,
+      0
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          8
+        ]
+      },
+      {
+        "py/tuple": [
+          5,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          8
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 11-gon with 8 chords"
+  },
+  "json://{\"py/tuple\": [0, 12]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 12,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          8
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          11
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          11
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 0,
+      "json://{\"py/tuple\": [0, 3]}": 0,
+      "json://{\"py/tuple\": [0, 4]}": 0,
+      "json://{\"py/tuple\": [0, 5]}": 0,
+      "json://{\"py/tuple\": [0, 6]}": 0,
+      "json://{\"py/tuple\": [6, 8]}": 0,
+      "json://{\"py/tuple\": [6, 9]}": 0,
+      "json://{\"py/tuple\": [6, 11]}": 0,
+      "json://{\"py/tuple\": [9, 11]}": 0
+    },
+    "size": 9,
+    "vertex_chord_degree": [
+      5,
+      0,
+      1,
+      1,
+      1,
+      1,
+      4,
+      0,
+      1,
+      2,
+      0,
+      2
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          8
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          11
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          11
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 12-gon with 9 chords"
+  },
+  "json://{\"py/tuple\": [0, 13]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 13,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          8
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          11
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          12
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 0,
+      "json://{\"py/tuple\": [0, 3]}": 0,
+      "json://{\"py/tuple\": [0, 4]}": 0,
+      "json://{\"py/tuple\": [0, 5]}": 0,
+      "json://{\"py/tuple\": [0, 6]}": 0,
+      "json://{\"py/tuple\": [0, 9]}": 0,
+      "json://{\"py/tuple\": [6, 8]}": 0,
+      "json://{\"py/tuple\": [6, 9]}": 0,
+      "json://{\"py/tuple\": [9, 11]}": 0,
+      "json://{\"py/tuple\": [9, 12]}": 0
+    },
+    "size": 10,
+    "vertex_chord_degree": [
+      6,
+      0,
+      1,
+      1,
+      1,
+      1,
+      3,
+      0,
+      1,
+      4,
+      0,
+      1,
+      1
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          8
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          11
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          12
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 13-gon with 10 chords"
+  },
+  "json://{\"py/tuple\": [0, 14]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 14,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          11
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          12
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          13
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 0,
+      "json://{\"py/tuple\": [0, 3]}": 0,
+      "json://{\"py/tuple\": [0, 4]}": 0,
+      "json://{\"py/tuple\": [0, 5]}": 0,
+      "json://{\"py/tuple\": [0, 6]}": 0,
+      "json://{\"py/tuple\": [0, 9]}": 0,
+      "json://{\"py/tuple\": [6, 9]}": 0,
+      "json://{\"py/tuple\": [7, 9]}": 0,
+      "json://{\"py/tuple\": [9, 11]}": 0,
+      "json://{\"py/tuple\": [9, 12]}": 0,
+      "json://{\"py/tuple\": [9, 13]}": 0
+    },
+    "size": 11,
+    "vertex_chord_degree": [
+      6,
+      0,
+      1,
+      1,
+      1,
+      1,
+      2,
+      1,
+      0,
+      6,
+      0,
+      1,
+      1,
+      1
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          6,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          11
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          12
+        ]
+      },
+      {
+        "py/tuple": [
+          9,
+          13
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 14-gon with 11 chords"
+  },
+  "json://{\"py/tuple\": [0, 15]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 15,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          7
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          10
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          11
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          12
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          13
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          14
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 0,
+      "json://{\"py/tuple\": [0, 3]}": 0,
+      "json://{\"py/tuple\": [0, 4]}": 0,
+      "json://{\"py/tuple\": [0, 5]}": 0,
+      "json://{\"py/tuple\": [0, 6]}": 0,
+      "json://{\"py/tuple\": [0, 7]}": 0,
+      "json://{\"py/tuple\": [7, 9]}": 0,
+      "json://{\"py/tuple\": [7, 10]}": 0,
+      "json://{\"py/tuple\": [7, 11]}": 0,
+      "json://{\"py/tuple\": [7, 12]}": 0,
+      "json://{\"py/tuple\": [7, 13]}": 0,
+      "json://{\"py/tuple\": [7, 14]}": 0
+    },
+    "size": 12,
+    "vertex_chord_degree": [
+      6,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      7,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          7
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          10
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          11
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          12
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          13
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          14
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 15-gon with 12 chords"
+  },
+  "json://{\"py/tuple\": [0, 16]}": {
+    "py/object": "chord_solver.ChordSolution",
+    "k": 0,
+    "n": 16,
+    "chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          7
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          10
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          11
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          12
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          13
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          14
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          15
+        ]
+      }
+    ],
+    "draw_outer_edges": true,
+    "crossings": {
+      "json://{\"py/tuple\": [0, 2]}": 0,
+      "json://{\"py/tuple\": [0, 3]}": 0,
+      "json://{\"py/tuple\": [0, 4]}": 0,
+      "json://{\"py/tuple\": [0, 5]}": 0,
+      "json://{\"py/tuple\": [0, 6]}": 0,
+      "json://{\"py/tuple\": [0, 7]}": 0,
+      "json://{\"py/tuple\": [7, 9]}": 0,
+      "json://{\"py/tuple\": [7, 10]}": 0,
+      "json://{\"py/tuple\": [7, 11]}": 0,
+      "json://{\"py/tuple\": [7, 12]}": 0,
+      "json://{\"py/tuple\": [7, 13]}": 0,
+      "json://{\"py/tuple\": [7, 14]}": 0,
+      "json://{\"py/tuple\": [7, 15]}": 0
+    },
+    "size": 13,
+    "vertex_chord_degree": [
+      6,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      8,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "saturated_chords": [
+      {
+        "py/tuple": [
+          0,
+          2
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          3
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          4
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          5
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          6
+        ]
+      },
+      {
+        "py/tuple": [
+          0,
+          7
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          9
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          10
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          11
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          12
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          13
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          14
+        ]
+      },
+      {
+        "py/tuple": [
+          7,
+          15
+        ]
+      }
+    ],
+    "crossable_vertices": [],
+    "edge_density": 3.0,
+    "description": "0-planar drawing of 16-gon with 13 chords"
+  }
+}
