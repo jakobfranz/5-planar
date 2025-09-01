@@ -2,7 +2,7 @@
 # into a H-Block and real components.
 
 from pulp import LpMinimize, LpInteger, LpVariable, lpSum
-from chord_solver import ConnectingSolution, Edge, crossings
+from chord_solver import ChordSolution, Edge, crossings
 from functional_chord_solver import (
     issue_chords,
     basic_ilp,
@@ -15,8 +15,44 @@ from persistent_cache import persistent_cache
 import os
 import math
 import itertools
+import networkx as nx
 
 FILE = os.path.basename(__file__)
+
+
+class RCSolution(ChordSolution):
+    def __init__(self, k, n, chords, rc_vertices, draw_outer_edges=True):
+        super().__init__(k, n, chords, draw_outer_edges)
+        self.rc_vertices = rc_vertices
+
+    def _point_positions(self):
+        return super()._point_positions() | {
+            rc_vertex: (
+                math.sin((2 * math.pi / self.n) * rc_vertex),
+                math.cos((2 * math.pi / self.n) * rc_vertex),
+            )
+            for rc_vertex in self.rc_vertices
+        }
+
+    # def to_nx_graph(self):
+    #     G = super().to_nx_graph()
+    #     vertices = list(range(self.n)) + self.rc_vertices
+    #     boundary_edges = [
+    #         (
+    #             *edge(vertices[i], vertices[(i + 1) % len(vertices)]),
+    #             {"multiplicity": 1, "boundary": True},
+    #         )
+    #         for i in range(len(vertices) - 1)
+    #         if not (vertices[i] % 1 == 1 / 4 or vertices[i + 1] % 1 == 3 / 4)
+    #     ]
+    #     G.add_edges_from(boundary_edges)
+    #     return G
+
+    def visualize(self):
+        G = self.to_nx_graph()
+        colors = {True: "grey", False: "black"}
+        edge_colors = [colors[edge.boundary] for edge in G.edges]
+        nx.draw(G, self._point_positions())
 
 
 def all_cases(options: list[int], length: int, filter: list[int]) -> list[list[int]]:
@@ -112,7 +148,7 @@ def analyse_real_components(
     q: int = 3,
     position_of_real_components: tuple[int, ...] = (0,),
     bound_to_show: tuple[int, int] = (4, 7),
-) -> dict[tuple[int, ...], tuple[int, ConnectingSolution]]:
+) -> dict[tuple[int, ...], tuple[int, RCSolution]]:
     """Analyses missing edges in an optimal setting with the specified real components."""
     # for each real component G_i there are 3 options:
     # |V_i| is 3, 4 or >= 5   <=>   |V_i - V_C| = 1, 2 or >= 3
@@ -310,7 +346,7 @@ def analyse_real_components(
                 prob += (
                     Delta_i_vars[i]
                     >= 2 * bound_linear
-                    + lpSum(
+                    - lpSum(
                         [chord_vars[inner_chord] for inner_chord in inner_rc_chords[i]]
                     )
                     - 1
@@ -347,7 +383,9 @@ def analyse_real_components(
 
         # analyse solution
         chords_in_solution = [
-            chord for chord in chords if chord_vars[chord].value() >= 1
+            (*chord, {"multiplicity": chord_vars[chord].value(), "boundary": False})
+            for chord in chords
+            if chord_vars[chord].value() >= 1
         ]
 
         print(f"Case {rc_types} solved with value {prob.objective.value()}")
@@ -358,9 +396,7 @@ def analyse_real_components(
 
         results[rc_types] = (
             prob.objective.value(),
-            ConnectingSolution(
-                k, 6, chords_in_solution, connector_vertices=sum(V_i, [])
-            ),
+            RCSolution(k, 6, chords_in_solution, rc_vertices=sum(V_i, [])),
         )
 
     critical_case = sorted(results.values(), key=lambda item: item[0])[0]

@@ -14,9 +14,12 @@ def cross(a: Edge, b: Edge):
     Assumes both edges to be tuples of the adjacent
     vertices with the lower numbered vertex coming first.
 
+    Vertices are assumed to lie on a convex face in the order
+    of their numbering.
+
     Args:
-        a: an edge
-        b: an edge
+        a (Edge): an edge
+        b (Edge): an edge
 
     Returns:
         True, if a and b cross
@@ -28,8 +31,20 @@ def cross(a: Edge, b: Edge):
     return False
 
 
-def crossings(chord: Edge, chords: list[Edge]) -> list[Edge]:
-    return [otherChord for otherChord in chords if cross(chord, otherChord)]
+def crossings(edge: Edge, other_edges: list[Edge]) -> list[Edge]:
+    """List all edges that are crossing a specific edge.
+
+    Crossings are determined by the :func:`~cross` function.
+
+    Args:
+        edge (Edge):
+            An edge
+        other_edges (list[Edge]):
+            A list of edges. May or may not contain `edge`.
+
+    Returns:
+        All edges in `other_edges`, that cross `edge`."""
+    return [other_edge for other_edge in other_edges if cross(edge, other_edge)]
 
 
 class ChordSolution:
@@ -356,7 +371,7 @@ class ConnectingSolution(ChordSolution):
 
 class ChordSolver:
     def crossable_vertex_predicate(
-        max_iterations: int
+        max_iterations: int,
     ) -> tuple[Callable[[ChordSolution, int], tuple[bool, int]], int]:
         def _predicate(solution: ChordSolution, iteration: int) -> tuple[bool, int]:
             return (
