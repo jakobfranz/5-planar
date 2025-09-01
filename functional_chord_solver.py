@@ -57,9 +57,9 @@ def issue_chords(vertices: list[Vertex], issue_boundary: bool = False) -> list[E
     chords = []
     for i in range(0, n - offset):
         for j in range(i + offset, n):
-            chords.append((vertices[i], vertices[j]))  #
+            chords.append(edge(vertices[i], vertices[j]))  #
     if not issue_boundary and n >= 3:
-        chords.remove((vertices[0], vertices[n - 1]))
+        chords.remove(edge(vertices[0], vertices[n - 1]))
     return chords
 
 

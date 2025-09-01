@@ -171,7 +171,6 @@ def persistent_cache(
                 loaded_cache[path_args] = load_file(file_path)
             else:
                 loaded_cache[path_args] = {}
-            print(loaded_cache)
 
         def load_file(file_path: str) -> Any:
             with open(file_path, "r") as cache_file:
@@ -201,9 +200,3 @@ def update(cache_path_a: str, cache_path_b: str) -> None:
         cache.update(pickle.load(cache_b))
     with open(cache_path_a, "wb") as cache_a:
         pickle.dump(cache, cache_a)
-
-
-@persistent_cache((1, 0))
-def test(tx: str, num: int = 1):
-    print("Running function")
-    return tx * num

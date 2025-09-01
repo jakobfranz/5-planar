@@ -57,7 +57,7 @@ class RCSolution(ChordSolution):
 
 def non_isomorphic_configurations(
     q: int, rc_types: list[int] = [0, 1, 2, 3]
-) -> list[list[int]]:
+) -> list[tuple[int]]:
     """Generate all non-isomorph real component configurations.
 
     A real component configuration is represented by a C_2q graph
@@ -120,7 +120,7 @@ def non_isomorphic_configurations(
     cases = _cases(2 * q, rc_types)
     # Remove non-canonical labellings
     cases = [
-        case
+        tuple(case)
         for case in cases
         if max(
             # These are the rc-sequences for all vertex labelings
@@ -140,9 +140,42 @@ def non_isomorphic_configurations(
     return cases
 
 
+@persistent_cache((0, 3), FILE)
 def analyse_real_component_configuration(
     k: int, q: int, rc_configuration: list[int], bound_to_show: tuple[float, float]
 ) -> tuple[bool, int, RCSolution]:
+    """Try proving the upper bound for the given real component configuration.
+
+    We fix `q` pairwise crossing edges, call them `D` and add
+    real components to the boundary of this subgraph. Call the
+    chords crossing `D` `C`. Calculate a lower bound on the
+    missing edges in C and the real components compared to their
+    theoretical maximum (Delta_C and Delta_i). If the sum of those
+    is larger than Delta_min, the upper bound is shown for this
+    configuration.
+
+    Args:
+        k (int):
+            Maximum number of crossings per edge
+        q (int):
+            Assumption of the existence of `q` pairwise crossing
+            edges, which are called `D` and are central to this
+            analysis approach
+        rc_configuration (list[int]):
+            The types of real components in the order they appear
+            around the D-region. Allowed types are 0,1,2 or 3 and
+            stands for the number of additional vertices between
+            two V_D vertices.
+        bound_to_show (tuple[float, float]):
+            Linear Upper bound that is to be shown. Takes the form
+            (a,b) for a bound of an - b
+
+    Returns:
+        A tuple
+        - success (bool): wether or not the boundary was shown
+        - delta (int): lower bound for Delta in this config
+        - rc_graph (RCSolution): The critical case for this config
+    """
     number_of_real_components = len([rc for rc in rc_configuration if rc != 0])
 
     V_D = list(range(2 * q))
@@ -410,23 +443,3 @@ with objective value {results[first_critical][1]}.
 """
         )
     return results
-
-
-# def case_1rc():
-#     return analyse_real_components(k=6, position_of_real_components=(0,))
-
-
-# def case_2rc_connected():
-#     return analyse_real_components(k=6, position_of_real_components=(0, 1))
-
-
-# def case_2rc_adjacent():
-#     return analyse_real_components(k=6, position_of_real_components=(0, 2))
-
-
-# case_1rc()
-# case_2rc_connected()
-
-# q3_bound(6, (4, 7))
-
-uncrit = analyse_real_component_configuration(6, 3, [1, 0, 0, 0, 0, 0], (4, 7))
