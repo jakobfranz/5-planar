@@ -2,10 +2,11 @@
 # into a H-Block and real components.
 
 from pulp import LpMinimize, LpInteger, LpVariable, lpSum
-from chord_solver import ChordSolution, Edge, crossings
+from chord_solver import ChordSolution, Edge, crossings, ConnectingSolution
 from functional_chord_solver import (
     issue_chords,
     basic_ilp,
+    is_incident,
     incident_edges,
     exists_var_name,
     edge,
@@ -14,7 +15,6 @@ from functional_chord_solver import (
 from persistent_cache import persistent_cache
 import os
 import math
-import itertools
 import networkx as nx
 
 FILE = os.path.basename(__file__)
@@ -55,122 +55,100 @@ class RCSolution(ChordSolution):
         nx.draw(G, self._point_positions())
 
 
-def all_cases(options: list[int], length: int, filter: list[int]) -> list[list[int]]:
-    if length == 1:
-        return [[option] for option in options]
-    else:
-        remaining_options = all_cases(options, length - 1, filter)
-        if length - 1 in filter and length - 1 != filter[0]:
-            compare_to_index = filter[filter.index(length - 1) - 1]
-            return [
-                remaining_option + [option]
-                for option in options
-                for remaining_option in remaining_options
-                if option >= remaining_option[compare_to_index]
-            ]
+def non_isomorphic_configurations(
+    q: int, rc_types: list[int] = [0, 1, 2, 3]
+) -> list[list[int]]:
+    """Generate all non-isomorph real component configurations.
+
+    A real component configuration is represented by a C_2q graph
+    (Cycle of length 2q), where the vertices represent V_D and
+    the edges are assigned the rc-type which sits between the
+    adjacent V_D-vertices. Type `0` means, that there is a boundary
+    edge instead of a real component.
+
+    Real component configurations are isomorph to each other,
+    if one can be transformed into the other through
+    rotation or mirroring.
+
+    We label the vertices in the order they appear on C_2q. We order
+    the edges in the same order. Of all the vertex labelings we
+    define that labeling to be canonical where the sequence of
+    rc-types of the edges is lexicographiccaly the highest.
+
+    There may be actually multiple canonical labelings for an rc-
+    configuration. But then the corresponding rc-type-sequences
+    are identical so the difference does not matter.
+
+    The elimination of isomorphic rc-configurations reduces the
+    number of configurations for `q=3` from 1300 to 430 and for
+    `q=4` from 65536 to 4435.
+
+    Args:
+        q (int):
+            Number of edges in `D`, important for the number of
+            sides in C_2q
+        rc_types (list[int]):
+            Possible types of real components. Type `0` should
+            mean, that the rc-type is non-existent.
+
+    Returns:
+        A list with all non-isomorphic real component
+        configurations
+    """
+
+    def _cases(remaining_sides: int, rc_types: list[int]) -> list[list[int]]:
+        """Generate possible rc-sequences recursively.
+
+        Some pruning is done to the search-space."""
+        if remaining_sides <= 0:
+            return []
+        elif remaining_sides == 1:
+            return [[rc_type] for rc_type in rc_types]
         else:
-            return [
-                remaining_option + [option]
-                for option in options
-                for remaining_option in remaining_options
+            rek_cases = _cases(remaining_sides - 1, rc_types)
+            cases = [
+                case + [rc_type]
+                for rc_type in rc_types
+                for case in rek_cases
+                if rc_type <= case[0]
+                # if rc_type > case[0] the canonical labeling would
+                # rather put rc_type then case[0] as the first
+                # element of the rc-sequence
             ]
+            return cases
 
-
-def congruent_filter(position_of_real_components: list[int], q: int) -> list[int]:
-    number_of_real_components = len(position_of_real_components)
-
-    # signature: distances to other real components
-    rc_signature = [
-        [
-            (
-                position_of_real_components[(i + ii) % number_of_real_components]
-                - position_of_real_components[i]
-            )
-            % (2 * q)
-            for ii in range(1, number_of_real_components)
-        ]
-        for i in range(number_of_real_components)
-    ]
-
-    congruent_rc = []
-
-    def _choices():
-        yield [position_of_real_components[0]]
-        if number_of_real_components >= 2:
-            for comb in itertools.combinations(position_of_real_components, 2):
-                yield comb
-        if number_of_real_components >= 3:
-            for comb in itertools.combinations(position_of_real_components, 3):
-                yield comb
-
-    def _signature_eq(signature1, signature2) -> bool:
-        return signature1 == signature2 or signature1 == list(
-            reversed([2 * q - diff for diff in signature2])
-        )
-
-    for con_cand in _choices():
-        if all(
+    cases = _cases(2 * q, rc_types)
+    # Remove non-canonical labellings
+    cases = [
+        case
+        for case in cases
+        if max(
+            # These are the rc-sequences for all vertex labelings
+            # that are ordered by the appearence on C_2q
             [
-                _signature_eq(
-                    rc_signature[position_of_real_components.index(con_cand[i])],
-                    rc_signature[position_of_real_components.index(con_cand[i + 1])],
-                )
-                for i in range(len(con_cand) - 1)
+                case[i::direction] + case[:i:direction]
+                for i in range(2 * q)
+                for direction in (1, -1)
             ]
-        ):
-            # normal signatures are equal
-            # check candidate specific signature
-
-            cand_len = len(con_cand)
-            cand_signatures = [
-                [
-                    (con_cand[(i + ii) % cand_len] - con_cand[i]) % (2 * q)
-                    for ii in range(1, cand_len)
-                ]
-                for i in range(cand_len)
-            ]
-
-            if all(
-                [
-                    _signature_eq(cand_signatures[i], cand_signatures[i + 1])
-                    for i in range(len(con_cand) - 1)
-                ]
-            ):
-                congruent_rc += [con_cand]
-
-    congruent_rc.sort(key=lambda arr: len(arr), reverse=True)
-    return [position_of_real_components.index(con_rc) for con_rc in congruent_rc[0]]
-
-
-@persistent_cache((0,), FILE)
-def analyse_real_components(
-    k: int = 6,
-    q: int = 3,
-    position_of_real_components: tuple[int, ...] = (0,),
-    bound_to_show: tuple[int, int] = (4, 7),
-) -> dict[tuple[int, ...], tuple[int, RCSolution]]:
-    """Analyses missing edges in an optimal setting with the specified real components."""
-    # for each real component G_i there are 3 options:
-    # |V_i| is 3, 4 or >= 5   <=>   |V_i - V_C| = 1, 2 or >= 3
-    # the latter is used to describe the option
-    number_of_real_components = len(position_of_real_components)
-
-    bound_linear, bound_constant = bound_to_show
-
-    # We only consider the case, if the rc types for the congruent
-    # rc positions are order ascending
-    rc_types_cases = [
-        tuple(case)
-        for case in all_cases(
-            [1, 2, 3],
-            number_of_real_components,
-            congruent_filter(position_of_real_components, q),
         )
+        # only if case if the lexicographically highest rc-sequence
+        # the vertex labeling was canonical and the rc-sequence
+        # needs to be considered.
+        == case
     ]
+
+    return cases
+
+
+def analyse_real_component_configuration(
+    k: int, q: int, rc_configuration: list[int], bound_to_show: tuple[float, float]
+) -> tuple[bool, int, RCSolution]:
+    number_of_real_components = len([rc for rc in rc_configuration if rc != 0])
 
     V_D = list(range(2 * q))
     D = [(V_D[i], V_D[i + q]) for i in range(q)]
-    results = dict()
+
+    bound_linear, bound_constant = bound_to_show
 
     Delta_min = (
         number_of_real_components * (2 * bound_linear - bound_constant - 1)
@@ -179,273 +157,230 @@ def analyse_real_components(
     )
 
     min_Delta = {
+        0: 0,
         1: 3 * bound_linear - bound_constant - 3,
         2: 4 * bound_linear - bound_constant - 6,
         3: 0,
     }
 
-    for rc_types in rc_types_cases:
-        # if the sum of the min_Deltas is greater than Delta_min
-        # we can stop here
-        min_delta_sum = sum(
-            [min_Delta[real_component_type] for real_component_type in rc_types]
-        )
-        if min_delta_sum >= Delta_min:
-            print(f"Delta >= {min_delta_sum} >= Delta_min")
-            print(f"therefore upper bound is shown for configuration {rc_types}")
-            results[rc_types] = (min_delta_sum, None)
-            continue
+    # if the sum of the min_Deltas is greater than Delta_min
+    # we can stop here
+    min_delta_sum = sum(
+        [min_Delta[real_component_type] for real_component_type in rc_configuration]
+    )
+    if min_delta_sum >= Delta_min:
+        print(f"Delta >= {min_delta_sum} >= Delta_min = {Delta_min}")
+        print(f"therefore upper bound is shown for configuration {rc_configuration}")
+        # TODO Alternative to RCSolution for these min_Delta cases
+        return (min_delta_sum, None)
 
-        # vertices of real components (equally spaced between neighboring V_C vertices)
-        V_i = [
-            [
-                position_of_real_components[i] + (h + 1) / (rc_types[i] + 1)
-                for h in range(rc_types[i])
-            ]
-            for i in range(number_of_real_components)
+    # Create ILP
+    rc_vertices = [
+        [
+            (V_D[i] + ii / (rc_configuration[i] + 1)) % (2 * q)
+            for ii in range(rc_configuration[i] + 2)
         ]
+        for i in range(2 * q)
+    ]
+    vertices = sum([rcv[:-1] for rcv in rc_vertices], [])
 
-        vertices = V_D + sum(V_i, [])
-        vertices.sort()
+    chords = issue_chords(vertices, False)
+    # chords within a real component
+    # including for shared edge between rc and V_C
+    inner_rc_chords: list[Edge] = [
+        issue_chords(real_component_vertices, issue_boundary=False)
+        + [edge(real_component_vertices[0], real_component_vertices[-1])]
+        for real_component_vertices in rc_vertices
+    ]
 
-        chords = issue_chords(vertices, False)
-        # chords within a real component
-        # including for shared edge between rc and V_C
-        inner_rc_chords: list[Edge] = [
-            issue_chords(
-                sorted(vi + [math.floor(vi[0]), math.ceil(vi[0]) % (2 * q)]),
-                issue_boundary=False,
+    # in the case |V_i| >= 5 for any i, the middle vertex represents an arbitrary number of vertices in G_j.
+    # As such, this chords incident to the middle vertex may represent several chords
+    multi_vertices = [vi[2] for vi in rc_vertices if len(vi) == 5]
+    multi_chords = [chord for chord in chords if is_incident(chord, multi_vertices)]
+
+    def multiplicity(chord):
+        if chord in multi_chords:
+            # C-edges have multiplicity <= k-q+1
+            # if non C-multi-edges have multiplicity >= k then no C-edge runs over them.
+            return k
+        else:
+            return 1
+
+    prob, chord_vars = basic_ilp(k, chords, LpMinimize, multiplicity)
+
+    BIG = len(vertices) ** 2
+
+    for diagonal in D:
+        prob += chord_vars[diagonal] == 1
+
+    # chords crossing D, <= 12 for k=6
+    C = {
+        chord
+        for diagonal in D
+        for chord in crossings(diagonal, chords)
+        if chord not in D
+    }
+
+    max_number_of_C_chords = q * (k - q + 1)
+
+    Delta_C = lpSum([max_number_of_C_chords] + [-chord_vars[chord] for chord in C])
+
+    Delta_i_vars = LpVariable.dicts("Delta_", range(2 * q), lowBound=0, cat=LpInteger)
+
+    for i in range(2 * q):
+        if rc_configuration[i] == 0:
+            prob += Delta_i_vars[i] == 0
+        elif rc_configuration[i] == 1:
+            prob += (
+                Delta_i_vars[i]
+                >= 3 * bound_linear
+                - bound_constant
+                - 2
+                - chord_vars[inner_rc_chords[i][0]]
             )
-            + [edge(math.floor(vi[0]), math.ceil(vi[0]) % (2 * q))]
-            for vi in V_i
-        ]
-
-        # in the case |V_i| >= 5 for any i, the middle vertex represents an arbitrary number of vertices in G_j.
-        # As such, this chords incident to the middle vertex may represent several chords
-        multi_vertices = [vi[1] for vi in V_i if len(vi) == 3]
-        multi_chords = [
-            chord
-            for chord in chords
-            if chord[0] in multi_vertices or chord[1] in multi_vertices
-        ]
-
-        def multiplicity(chord):
-            if chord in multi_chords:
-                # C-edges have multiplicity <= k-q+1
-                # if non C-multi-edges have multiplicity >= k then no C-edge runs over them.
-                return k
-            else:
-                return 1
-
-        prob, chord_vars = basic_ilp(k, chords, LpMinimize, multiplicity)
-
-        BIG = (2 * q * 4) ** 2
-
-        for diagonal in D:
-            prob += chord_vars[diagonal] == 1
-
-        # chords crossing D, <= 12 for k=6
-        C = {
-            chord
-            for diagonal in D
-            for chord in crossings(diagonal, chords)
-            if chord not in D
-        }
-
-        max_number_of_C_chords = q * (k - q + 1)
-
-        Delta_C = lpSum([max_number_of_C_chords] + [-chord_vars[chord] for chord in C])
-
-        Delta_i_vars = LpVariable.dicts(
-            "Delta_", range(number_of_real_components), lowBound=0, cat=LpInteger
-        )
-
-        for i in range(number_of_real_components):
-            if rc_types[i] == 1:
+        elif rc_configuration[i] == 2:
+            prob += Delta_i_vars[i] >= 4 * bound_linear - bound_constant - 3 - lpSum(
+                [chord_vars[chord] for chord in inner_rc_chords[i]]
+            )
+        elif rc_configuration[i] == 3:
+            v_fo1, v_so1, v_to, v_so2, v_fo2 = rc_vertices[i]
+            not_rc_i_chords = [
+                chord for chord in chords if chord not in inner_rc_chords
+            ]
+            # splitting C-edge
+            for splitting_edge in incident_edges(v_to, C):
                 prob += (
                     Delta_i_vars[i]
-                    >= 3 * bound_linear
-                    - bound_constant
-                    - 2
-                    - chord_vars[inner_rc_chords[i][0]]
+                    >= -bound_linear
+                    + bound_constant
+                    - k
+                    + chord_vars[exists_var_name(splitting_edge)] * BIG  # l start
+                    - BIG
+                    + lpSum(
+                        [
+                            chord_vars[crossing_chord]
+                            for crossing_chord in crossings(
+                                splitting_edge,
+                                not_rc_i_chords,
+                            )
+                        ]
+                    )  # l end
+                    - lpSum(
+                        [
+                            chord_vars[exists_var_name(subgraph_boundary)]
+                            for subgraph_boundary in [
+                                edge(v_fo1, v_to),
+                                edge(v_fo2, v_to),
+                            ]
+                        ]
+                    )
+                    + 2
                 )
-            elif rc_types[i] == 2:
-                prob += Delta_i_vars[
-                    i
-                ] >= 4 * bound_linear - bound_constant - 3 - lpSum(
-                    [chord_vars[chord] for chord in inner_rc_chords[i]]
-                )
-            elif rc_types[i] == 3:
-                v_to = V_i[i][1]
-                v_so1 = V_i[i][0]
-                v_so2 = V_i[i][2]
-                v_fo1 = math.floor(v_to)
-                v_fo2 = math.ceil(v_to) % (2 * q)
-                not_rc_i_chords = [
-                    chord for chord in chords if chord not in inner_rc_chords
-                ]
-                # splitting C-edge
-                for splitting_edge in incident_edges(v_to, C):
+
+            # enclosing C-edge
+            second_order_vertices = [v_so1, v_so2]
+            for iter in range(2):
+                incident_sov = second_order_vertices[iter]
+                if iter == 0:
+                    not_enclosed_fo_vertex = v_fo2
+                else:
+                    not_enclosed_fo_vertex = v_fo1
+
+                for enclosing_edge in incident_edges(incident_sov, C):
                     prob += (
                         Delta_i_vars[i]
-                        >= -bound_linear
-                        + bound_constant
+                        >= bound_linear
                         - k
-                        + chord_vars[exists_var_name(splitting_edge)] * BIG  # l start
+                        + chord_vars[enclosing_edge] * BIG  # l start
                         - BIG
                         + lpSum(
                             [
                                 chord_vars[crossing_chord]
                                 for crossing_chord in crossings(
-                                    splitting_edge,
+                                    enclosing_edge,
                                     not_rc_i_chords,
                                 )
                             ]
                         )  # l end
-                        - lpSum(
-                            [
-                                chord_vars[exists_var_name(subgraph_boundary)]
-                                for subgraph_boundary in [
-                                    edge(v_fo1, v_to),
-                                    edge(v_fo2, v_to),
-                                ]
-                            ]
-                        )
-                        + 2
+                        - chord_vars[edge(incident_sov, not_enclosed_fo_vertex)]
                     )
 
-                # enclosing C-edge
-                second_order_vertices = [v_so1, v_so2]
-                for iter in range(2):
-                    incident_sov = second_order_vertices[iter]
-                    if iter == 0:
-                        not_enclosed_fo_vertex = v_fo2
-                    else:
-                        not_enclosed_fo_vertex = v_fo1
+            # real coponent chord configuration
+            prob += (
+                Delta_i_vars[i]
+                >= 2 * bound_linear
+                - lpSum([chord_vars[inner_chord] for inner_chord in inner_rc_chords[i]])
+                - 1
+            )
 
-                    for enclosing_edge in incident_edges(incident_sov, C):
-                        prob += (
-                            Delta_i_vars[i]
-                            >= bound_linear
-                            - k
-                            + chord_vars[enclosing_edge] * BIG  # l start
-                            - BIG
-                            + lpSum(
-                                [
-                                    chord_vars[crossing_chord]
-                                    for crossing_chord in crossings(
-                                        enclosing_edge,
-                                        not_rc_i_chords,
-                                    )
-                                ]
-                            )  # l end
-                            - chord_vars[edge(incident_sov, not_enclosed_fo_vertex)]
-                        )
+    # target function
+    prob += Delta_C + lpSum(
+        [Delta_i_vars[i] for i in range(2 * q) if rc_configuration[i] > 0]
+    )
 
-                # real coponent chord configuration
-                prob += (
-                    Delta_i_vars[i]
-                    >= 2 * bound_linear
-                    - lpSum(
-                        [chord_vars[inner_chord] for inner_chord in inner_rc_chords[i]]
-                    )
-                    - 1
-                )
+    prob.solve()
 
-        # # edge between V_D and real components
-        # shared_boundary_edges = [
-        #     tuple(sorted([v, v + 1 % 6])) for v in position_of_real_components
-        # ]
-
-        # # bonus edges for each real component
-        # # |E_i_inner|
-        # # |V_i| >= 5  ->  6 - |E_i_inner|
-        # # |V_i| == 4  ->  3 - |E_i_inner|
-        # # |V_i| == 3  ->  0
-        # base_rc_bonus = {
-        #     1: 3 * bound_linear - bound_constant - 3,
-        #     2: 4 * bound_linear - bound_constant - 4,
-        #     3: 2 * bound_linear - 2,
-        # }
-        # neg_rc_bonus = [
-        #     [-base_rc_bonus[case[i]]]
-        #     + [chord_vars[inner_chord] for inner_chord in inner_rc_chords[i]]
-        #     for i in range(number_of_real_components)
-        # ]
-        # neg_rc_bonus_flat = [item for rc_list in neg_rc_bonus for item in rc_list]
-
-        # target function
-        prob += Delta_C + lpSum(
-            [Delta_i_vars[i] for i in range(number_of_real_components)]
-        )
-
-        prob.solve()
-
-        # analyse solution
-        chords_in_solution = [
-            (*chord, {"multiplicity": chord_vars[chord].value(), "boundary": False})
-            for chord in chords
-            if chord_vars[chord].value() >= 1
-        ]
-
-        print(f"Case {rc_types} solved with value {prob.objective.value()}")
-        print(f"Delta_min = {Delta_min}")
-        print(f"Delta_C = {Delta_C.value()}")
-        for i in range(number_of_real_components):
-            print(f"Delta_i = {Delta_i_vars[i].value()}")
-
-        results[rc_types] = (
-            prob.objective.value(),
-            RCSolution(k, 6, chords_in_solution, rc_vertices=sum(V_i, [])),
-        )
-
-    critical_case = sorted(results.values(), key=lambda item: item[0])[0]
-    results["critical"] = critical_case
-
-    results["delta_min"] = Delta_min
-
-    print(f"solved all cases with critical case having value {critical_case[0]}")
-    if critical_case[0] >= Delta_min:
-        print(
-            f"Therefore, upper bound is proven for real component configuration {position_of_real_components}."
-        )
-        results["success"] = True
-    else:
-        print(
-            f"Upper bound could not be proven for real component configuration {position_of_real_components}."
-        )
-        results["success"] = False
-
-    return results
-
-
-def all_hexagon_position() -> list[tuple[int, ...]]:
-    return [
-        (0,),
-        (0, 1),
-        (0, 2),
-        (0, 3),
-        (0, 1, 2),
-        (0, 1, 3),
-        (0, 2, 4),
-        (0, 1, 2, 3),
-        (0, 1, 2, 4),
-        (0, 1, 3, 4),
-        (0, 1, 2, 3, 4),
-        (0, 1, 2, 3, 4, 5),
+    # analyse solution
+    chords_in_solution = [
+        chord
+        # (*chord, {"multiplicity": chord_vars[chord].value(), "boundary": False})
+        for chord in chords
+        if chord_vars[chord].value() >= 1
     ]
 
+    print(f"Case {rc_configuration} solved with value {prob.objective.value()}")
+    print(f"Delta_min = {Delta_min}")
+    print(f"Delta_C = {Delta_C.value()}")
+    for i in range(number_of_real_components):
+        print(f"Delta_i = {Delta_i_vars[i].value()}")
 
-def q3_bound(k: int, bound: tuple[float, float]):
-    results = dict()
-    for real_component_positions in all_hexagon_position():
-        results[real_component_positions] = analyse_real_components(
+    return (
+        Delta_min <= prob.objective.value(),
+        prob.objective.value(),
+        ConnectingSolution(
             k,
-            3,
-            real_component_positions,
-            bound,
+            2 * q,
+            chords_in_solution,
+            [v for v in vertices if v not in V_D],
+            verbose=False,
+        ),
+        # RCSolution(
+        #     k,
+        #     2 * q,
+        #     chords_in_solution,
+        #     rc_vertices=[v for v in vertices if v not in V_D],
+        # ),
+    )
+
+
+def q3_bound(
+    k: int, bound: tuple[float, float], ignore_failures: bool = True
+) -> tuple[bool, dict[tuple[int, ...], tuple[bool, int, RCSolution]]]:
+    q = 3
+    results = dict()
+    success = True
+    first_critical = None
+    for real_component_positions in non_isomorphic_configurations(q, [0, 1, 2, 3]):
+        analysis = analyse_real_component_configuration(
+            k, q, real_component_positions, bound
         )
-    success = all([results[rc_pos]["success"] for rc_pos in all_hexagon_position()])
+        results[tuple(real_component_positions)] = analysis
+        success &= analysis[0]
+        if not ignore_failures and not analysis[0]:
+            print(f"""
+================================================
+       Result of automatic bound proving:
+       ----------------------------------
+Upper bound of {bound[0]}n - {bound[1]} could
+NOT be proven for k={k} with q=3.
+Critical configuration was {real_component_positions[0]}
+with objective value {analysis[1]}.
+================================================
+""")
+            return results
+        if not analysis[0] and first_critical is None:
+            first_critical = real_component_positions
+
     if success:
         print(
             f"""
@@ -460,9 +395,6 @@ successfully proven for k={k} with q=3.
 """
         )
     else:
-        critical_configuration = sorted(
-            list(results.items()), key=lambda kv_pair: kv_pair[1]["critical"][0]
-        )[0]
         print(
             f"""
               
@@ -471,8 +403,8 @@ successfully proven for k={k} with q=3.
        ----------------------------------
 Upper bound of {bound[0]}n - {bound[1]} could
 NOT be proven for k={k} with q=3.
-Critical configuration was {critical_configuration[0]}
-with objective value {critical_configuration[1]["critical"][0]}.
+Critical configuration was {first_critical[0]}
+with objective value {results[first_critical][1]}.
 ================================================
 
 """
@@ -480,16 +412,16 @@ with objective value {critical_configuration[1]["critical"][0]}.
     return results
 
 
-def case_1rc():
-    return analyse_real_components(k=6, position_of_real_components=(0,))
+# def case_1rc():
+#     return analyse_real_components(k=6, position_of_real_components=(0,))
 
 
-def case_2rc_connected():
-    return analyse_real_components(k=6, position_of_real_components=(0, 1))
+# def case_2rc_connected():
+#     return analyse_real_components(k=6, position_of_real_components=(0, 1))
 
 
-def case_2rc_adjacent():
-    return analyse_real_components(k=6, position_of_real_components=(0, 2))
+# def case_2rc_adjacent():
+#     return analyse_real_components(k=6, position_of_real_components=(0, 2))
 
 
 # case_1rc()
@@ -497,4 +429,4 @@ def case_2rc_adjacent():
 
 # q3_bound(6, (4, 7))
 
-congruent_filter([0, 1], 3)
+uncrit = analyse_real_component_configuration(6, 3, [1, 0, 0, 0, 0, 0], (4, 7))

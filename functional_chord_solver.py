@@ -51,14 +51,15 @@ def issue_chords(vertices: list[Vertex], issue_boundary: bool = False) -> list[E
     """
     n = len(vertices)
     if issue_boundary:
-        offset = 0
-    else:
         offset = 1
+    else:
+        offset = 2
     chords = []
-    for i in range(0, n - 1 - offset):
-        for j in range(i + 1 + offset, n):
-            chords.append((vertices[i], vertices[j]))
-    chords.remove((vertices[0], vertices[n - 1]))
+    for i in range(0, n - offset):
+        for j in range(i + offset, n):
+            chords.append((vertices[i], vertices[j]))  #
+    if not issue_boundary and n >= 3:
+        chords.remove((vertices[0], vertices[n - 1]))
     return chords
 
 
@@ -180,7 +181,7 @@ def is_incident(edge: Edge, vertices: Vertex | list[Vertex]) -> bool:
     Returns:
         Bool ```True``` if there is a vertex in ```vertices``` that is incident to ```edge```
     """
-    if type(vertices) == Vertex:
+    if type(vertices) is Vertex:
         vertices = [vertices]
     return len(set(edge[:2]).intersection(set(vertices))) > 0
 

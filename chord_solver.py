@@ -277,12 +277,7 @@ class ConnectingSolution(ChordSolution):
         return outer_edges, real_chords, connecting_chords, through_chords
 
     def __init__(
-        self,
-        k,
-        n,
-        edges,
-        connector_vertices,
-        draw_outer_edges=False,
+        self, k, n, edges, connector_vertices, draw_outer_edges=False, verbose=True
     ):
         (
             outer_edges,
@@ -290,8 +285,9 @@ class ConnectingSolution(ChordSolution):
             connecting_chords,
             through_chords,
         ) = ConnectingSolution.split_edges(edges, connector_vertices)
-        print(connector_vertices)
-        print(ConnectingSolution.split_edges(edges, connector_vertices))
+        if verbose:
+            print(connector_vertices)
+            print(ConnectingSolution.split_edges(edges, connector_vertices))
         super().__init__(k, n, real_chords, draw_outer_edges)
 
         self.connector_vertices = connector_vertices
