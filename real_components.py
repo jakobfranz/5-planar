@@ -2,7 +2,7 @@
 # into a H-Block and real components.
 
 from pulp import LpMinimize, LpInteger, LpVariable, lpSum
-from chord_solver import ChordSolution, Edge, crossings, ConnectingSolution
+from chord_solver import Edge, crossings
 from functional_chord_solver import (
     issue_chords,
     basic_ilp,
@@ -11,48 +11,12 @@ from functional_chord_solver import (
     exists_var_name,
     edge,
 )
+from rc_solution import RCSolution
 
 from persistent_cache import persistent_cache
 import os
-import math
-import networkx as nx
 
 FILE = os.path.basename(__file__)
-
-
-class RCSolution(ChordSolution):
-    def __init__(self, k, n, chords, rc_vertices, draw_outer_edges=True):
-        super().__init__(k, n, chords, draw_outer_edges)
-        self.rc_vertices = rc_vertices
-
-    def _point_positions(self):
-        return super()._point_positions() | {
-            rc_vertex: (
-                math.sin((2 * math.pi / self.n) * rc_vertex),
-                math.cos((2 * math.pi / self.n) * rc_vertex),
-            )
-            for rc_vertex in self.rc_vertices
-        }
-
-    # def to_nx_graph(self):
-    #     G = super().to_nx_graph()
-    #     vertices = list(range(self.n)) + self.rc_vertices
-    #     boundary_edges = [
-    #         (
-    #             *edge(vertices[i], vertices[(i + 1) % len(vertices)]),
-    #             {"multiplicity": 1, "boundary": True},
-    #         )
-    #         for i in range(len(vertices) - 1)
-    #         if not (vertices[i] % 1 == 1 / 4 or vertices[i + 1] % 1 == 3 / 4)
-    #     ]
-    #     G.add_edges_from(boundary_edges)
-    #     return G
-
-    def visualize(self):
-        G = self.to_nx_graph()
-        colors = {True: "grey", False: "black"}
-        edge_colors = [colors[edge.boundary] for edge in G.edges]
-        nx.draw(G, self._point_positions())
 
 
 def non_isomorphic_configurations(
@@ -142,7 +106,7 @@ def non_isomorphic_configurations(
 
 @persistent_cache((0, 3), FILE)
 def analyse_real_component_configuration(
-    k: int, q: int, rc_configuration: list[int], bound_to_show: tuple[float, float]
+    k: int, q: int, rc_configuration: tuple[int], bound_to_show: tuple[float, float]
 ) -> tuple[bool, int, RCSolution]:
     """Try proving the upper bound for the given real component configuration.
 
@@ -346,6 +310,9 @@ def analyse_real_component_configuration(
                 - 1
             )
 
+            # missing shared edge
+            prob += Delta_i_vars[i] >= 1 - chord_vars[edge(v_fo1, v_fo2)]
+
     # target function
     prob += Delta_C + lpSum(
         [Delta_i_vars[i] for i in range(2 * q) if rc_configuration[i] > 0]
@@ -355,8 +322,7 @@ def analyse_real_component_configuration(
 
     # analyse solution
     chords_in_solution = [
-        chord
-        # (*chord, {"multiplicity": chord_vars[chord].value(), "boundary": False})
+        (*chord, int(chord_vars[chord].value()))
         for chord in chords
         if chord_vars[chord].value() >= 1
     ]
@@ -364,25 +330,29 @@ def analyse_real_component_configuration(
     print(f"Case {rc_configuration} solved with value {prob.objective.value()}")
     print(f"Delta_min = {Delta_min}")
     print(f"Delta_C = {Delta_C.value()}")
-    for i in range(number_of_real_components):
-        print(f"Delta_i = {Delta_i_vars[i].value()}")
+    for i in range(2 * q):
+        if rc_configuration[i] > 0:
+            print(f"Delta_{i} = {Delta_i_vars[i].value()}")
+    deltas = [Delta_min, prob.objective.value(), Delta_C.value()] + [
+        delta_i.value() for delta_i in Delta_i_vars.values()
+    ]
 
     return (
         Delta_min <= prob.objective.value(),
         prob.objective.value(),
-        ConnectingSolution(
-            k,
-            2 * q,
-            chords_in_solution,
-            [v for v in vertices if v not in V_D],
-            verbose=False,
-        ),
-        # RCSolution(
+        # ConnectingSolution(
         #     k,
         #     2 * q,
         #     chords_in_solution,
-        #     rc_vertices=[v for v in vertices if v not in V_D],
+        #     [v for v in vertices if v not in V_D],
+        #     verbose=False,
         # ),
+        RCSolution(
+            k,
+            vertices,
+            chords_in_solution,
+            deltas,
+        ),
     )
 
 
