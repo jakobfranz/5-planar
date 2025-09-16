@@ -1,7 +1,9 @@
 # Solve some cases when partitioning an outer-k-planar graph
 # into a H-Block and real components.
 
-from pulp import LpMinimize, LpInteger, LpVariable, lpSum
+import math
+from pulp import LpMinimize, LpContinuous, LpVariable, lpSum
+from chords import number_of_edges
 from chord_solver import Edge, crossings
 from functional_chord_solver import (
     issue_chords,
@@ -104,7 +106,7 @@ def non_isomorphic_configurations(
     return cases
 
 
-@persistent_cache((0, 3), FILE)
+# @persistent_cache((0, 3), FILE)
 def analyse_real_component_configuration(
     k: int, q: int, rc_configuration: tuple[int], bound_to_show: tuple[float, float]
 ) -> tuple[bool, int, RCSolution]:
@@ -160,17 +162,6 @@ def analyse_real_component_configuration(
         3: 0,
     }
 
-    # if the sum of the min_Deltas is greater than Delta_min
-    # we can stop here
-    min_delta_sum = sum(
-        [min_Delta[real_component_type] for real_component_type in rc_configuration]
-    )
-    if min_delta_sum >= Delta_min:
-        print(f"Delta >= {min_delta_sum} >= Delta_min = {Delta_min}")
-        print(f"therefore upper bound is shown for configuration {rc_configuration}")
-        # TODO Alternative to RCSolution for these min_Delta cases
-        return (min_delta_sum, None)
-
     # Create ILP
     rc_vertices = [
         [
@@ -181,6 +172,23 @@ def analyse_real_component_configuration(
     ]
     vertices = sum([rcv[:-1] for rcv in rc_vertices], [])
 
+    # if the sum of the min_Deltas is greater than Delta_min
+    # we can stop here
+    min_deltas = [
+        min_Delta[real_component_type] for real_component_type in rc_configuration
+    ]
+    min_delta_sum = sum(min_deltas)
+    if min_delta_sum >= Delta_min:
+        print(f"Delta >= {min_delta_sum} >= Delta_min = {Delta_min}")
+        print(f"therefore upper bound is shown for configuration {rc_configuration}")
+        return (
+            True,
+            min_delta_sum,
+            RCSolution(
+                k, vertices, chords=D, deltas=[Delta_min, min_delta_sum, 0] + min_deltas
+            ),
+        )
+
     chords = issue_chords(vertices, False)
     # chords within a real component
     # including for shared edge between rc and V_C
@@ -190,6 +198,14 @@ def analyse_real_component_configuration(
         for real_component_vertices in rc_vertices
     ]
 
+    # chords crossing D, <= 12 for k=6
+    C = {
+        chord
+        for diagonal in D
+        for chord in crossings(diagonal, chords)
+        if chord not in D
+    }
+
     # in the case |V_i| >= 5 for any i, the middle vertex represents an arbitrary number of vertices in G_j.
     # As such, this chords incident to the middle vertex may represent several chords
     multi_vertices = [vi[2] for vi in rc_vertices if len(vi) == 5]
@@ -198,8 +214,13 @@ def analyse_real_component_configuration(
     def multiplicity(chord):
         if chord in multi_chords:
             # C-edges have multiplicity <= k-q+1
+            if chord in C:
+                return k - q + 1
             # if non C-multi-edges have multiplicity >= k then no C-edge runs over them.
-            return k
+            # if edge has multiplicity 2 * bound_linear - 1, then rc chord
+            # configuration Delta_i restraint yields to Delta_i <= 0, which
+            # is the minimum for Delta_i.
+            return max(math.ceil(2 * bound_linear) - 1, k)
         else:
             return 1
 
@@ -210,19 +231,13 @@ def analyse_real_component_configuration(
     for diagonal in D:
         prob += chord_vars[diagonal] == 1
 
-    # chords crossing D, <= 12 for k=6
-    C = {
-        chord
-        for diagonal in D
-        for chord in crossings(diagonal, chords)
-        if chord not in D
-    }
-
     max_number_of_C_chords = q * (k - q + 1)
 
     Delta_C = lpSum([max_number_of_C_chords] + [-chord_vars[chord] for chord in C])
 
-    Delta_i_vars = LpVariable.dicts("Delta_", range(2 * q), lowBound=0, cat=LpInteger)
+    Delta_i_vars = LpVariable.dicts(
+        "Delta_", range(2 * q), lowBound=0, cat=LpContinuous
+    )
 
     for i in range(2 * q):
         if rc_configuration[i] == 0:
@@ -360,6 +375,20 @@ def q3_bound(
     k: int, bound: tuple[float, float], ignore_failures: bool = True
 ) -> tuple[bool, dict[tuple[int, ...], tuple[bool, int, RCSolution]]]:
     q = 3
+    # check induction start
+    for n in range(3, 2 * q + 1):
+        if bound[0] * n - bound[1] < number_of_edges(k, n):
+            print(f"""
+================================================
+       Result of automatic bound proving:
+       ----------------------------------
+Upper bound of {bound[0]}n - {bound[1]} could
+NOT be proven for k={k} with q=3.
+Induction start was violated for n={n}.
+================================================
+                  
+                  """)
+            return False
     results = dict()
     success = True
     first_critical = None
@@ -413,3 +442,8 @@ with objective value {results[first_critical][1]}.
 """
         )
     return results
+
+
+# analyse_real_component_configuration(6, 3, (1, 0, 0, 0, 0, 0), (5, 15))[2].visualize()
+# k6_5n9 = q3_bound(6, (4.3, 9.8), False)
+analyse_real_component_configuration(6, 3, (1, 2, 2, 0, 0, 0), (4.4, 10))[2].visualize()

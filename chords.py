@@ -17,6 +17,11 @@ def number_of_chords(k: int, n: int) -> int:
     return solve(k, n).size
 
 
+def number_of_edges(k: int, n: int) -> int:
+    """Get number of edges in optimal outer-k-planar graph with n vertices."""
+    return number_of_chords(k, n) + n
+
+
 @persistent_cache(0, FILE)
 def all_solutions(k: int, n: int, chords=-1) -> list[ChordSolution]:
     """Calculate all unique solutions with given number of chords.

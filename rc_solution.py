@@ -33,7 +33,11 @@ class Point:
         return dif.x < accuracy and dif.y < accuracy
 
     def __repr__(self) -> tuple:
-        return f"P({self.x}, {self.y})"
+        return f"Point({self.x}, {self.y})"
+
+    def normalize(self) -> Point:
+        length = math.sqrt(self.x**2 + self.y**2)
+        return self / length
 
     def plot(self, axes, color="green", markersize=20, label=""):
         spt.plot_points(self.point, ax=axes, color=color, markersize=markersize)
@@ -50,6 +54,7 @@ class Point:
 class Line(ABC):
     line_width = 1
     offset_length = 0.02
+    multiedge_fan_size = 0.2
 
     @abstractmethod
     def intersections(self, other: Line) -> list[Point]:
@@ -109,7 +114,7 @@ class PolyLine(Line):
                 linewidth=Line.line_width,
             )
         else:
-            diff = self.points[-1] - self.points[1]
+            diff = self.points[-1] - self.points[0]
             if diff.x == 0:
                 offset_unit = Point(Line.offset_length, 0)
             else:
@@ -118,9 +123,15 @@ class PolyLine(Line):
                 offset_unit = Point(offset_x, offset_x * offset_m)
             for i in range(multiplicity):
                 offset = offset_unit * (i - (multiplicity - 1) / 2)
-                PolyLine(*[point + offset for point in self.points]).plot(
-                    axes, color, 1
-                )
+                control_points = [point + offset for point in self.points]
+                control_points[0] += (
+                    control_points[1] - control_points[0]
+                ).normalize() * Line.multiedge_fan_size
+                control_points[-1] += (
+                    control_points[-2] - control_points[-1]
+                ).normalize() * Line.multiedge_fan_size
+                control_points = [self.points[0]] + control_points + [self.points[-1]]
+                PolyLine(*control_points).plot(axes, color, 1)
 
 
 class RCSolution(ChordSolution):
@@ -132,7 +143,7 @@ class RCSolution(ChordSolution):
         k: int,
         vertices: list[Vertex],
         chords: list[Edge],
-        deltas: dict[str | int, int],
+        deltas: dict[str | int, float],
     ):
         print(chords)
         self.k = k
@@ -202,7 +213,11 @@ class RCSolution(ChordSolution):
             c_points += [
                 old_line.intersections(bendlines[math.floor(inc_vertex)])[0]
                 for inc_vertex in chord[:2]
+                # non-inner-rc-vertices dont get shifted -> no bend necessary for it
                 if inc_vertex % 1 != 0
+                # check for inner-rc-chords, they don't collide with a bendline
+                and math.floor(chord[0]) != math.floor(chord[1])
+                and math.ceil(chord[0]) != math.ceil(chord[1])
             ]
             c_points += [vertex_positions[chord[1]]]
             control_points[chord] = c_points
@@ -233,9 +248,9 @@ class RCSolution(ChordSolution):
                 mult = chord[2]
             PolyLine(*control_points).plot(ax, multiplicity=mult)
 
-        delta_min = int(self.deltas[0])
-        delta = int(self.deltas[1])
-        delta_C = int(self.deltas[2])
+        delta_min = self.deltas[0]
+        delta = self.deltas[1]
+        delta_C = self.deltas[2]
         if delta >= delta_min:
             comp = "\\geq"
             color = "green"
@@ -265,7 +280,7 @@ class RCSolution(ChordSolution):
             ax.text(
                 delta_pos.x,
                 delta_pos.y,
-                f"$\\Delta_{{{real_components[i]}}} \\geq {int(self.deltas[3 + real_components[i]])}$",
+                f"$\\Delta_{{{real_components[i]}}} \\geq {self.deltas[3 + real_components[i]]:.2g}$",
                 va="center",
                 ha="center",
             )
@@ -279,7 +294,7 @@ class RCSolution(ChordSolution):
             ).plot(ax, "grey", 1)
 
         ax.set_title(
-            f"Outer-{self.k}-planar configuration\n$\\Delta = {delta} {comp} {delta_min} = \\Delta_{{min}}, \\Delta_C = {delta_C}$",
+            f"Outer-{self.k}-planar configuration\n$\\Delta = {delta:.2g} {comp} {delta_min:.2g} = \\Delta_{{min}}, \\Delta_C = {delta_C:.2g}$",
             color=color,
             pad=15,
         )
